@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dikotik Dinleme — Migren Projesi</title>
+
+<meta name="emailjs-user"    content="FLn2zMqKDGso3ePoO">
+<meta name="emailjs-service" content="service_a8bnfmk">
+<meta name="emailjs-template"content="template_7elc4wi">
+
+<style>
+  body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:12px;color:#111;max-width:480px;margin:auto}
+  h1{font-size:20px;margin-bottom:10px}
+  .card{padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px}
+  .hidden{display:none}
+  input,select,textarea{padding:8px;margin:6px 0;width:100%;box-sizing:border-box}
+
+  input[type="radio"], input[type="checkbox"] {
+    width: auto; 
+    margin-right: 6px; 
+  }
+  
+  #participationOptions label {
+      display: block;
+      margin-bottom: 8px; 
+  }
+
+  .bigBtn{font-size:1rem;padding:10px 14px;border-radius:8px;border:1px solid #444;background:#eaeaea;cursor:pointer}
+  .btnGreen{background:#2ecc71;color:white;border:none}
+  .btnRed{background:#e74c3c;color:white;border:none}
+
+  .respRow{
+    display: grid; 
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 0 12px; 
+  }
+
+  .respBtn{
+    padding:10px 14px;
+    border-radius:8px;
+    border:1px solid #444;
+    background:#f2f2f2;
+    cursor:pointer;
+    text-align: center;
+  }
+
+  .respBtn-active{background:#bdbdbd}
+  .stai-options{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .hand-grid-header{display:flex;justify-content:space-between;margin-bottom:6px;font-weight:600}
+  .hand-grid-row{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #eee;padding:6px 0}
+  .hand-grid-row span{flex:2}
+  .hand-grid-row .col{flex:1;display:flex;justify-content:center;gap:8px}
+  .small{font-size:13px;color:#666}
+  .question-group{margin-bottom:10px}
+
+  .modal{position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none}
+  .modal-content{background:#fff;margin:5% auto;padding:20px;border-radius:10px;max-width:600px;max-height:80vh;overflow-y:auto}
+  .close{float:right;font-size:24px;font-weight:bold;cursor:pointer;color:#888}
+  .close:hover{color:#000}
+</style>
+</head>
+<body>
+<h1>Dikotik Dinleme – Migren</h1>
+
+<!-- ========================================================= -->
+<!--  PROJE KODU (Artık sadece Migren görünüyor)               -->
+<!-- ========================================================= -->
+<div id="projectCard" class="card">
+  <h3>Proje Kodu Seçimi</h3>
+  <select id="projectCode">
+    <option value="">Proje kodu seçiniz</option>
+
+    <!-- ✔ Sadece Migren görünür -->
+    <option value="Migren">Migren</option>
+
+    <!-- ✔ Diğer projeler kodda durur ama görünmez -->
+    <option value="OykuTez" style="display:none">Öykü Tez</option>
+    <option value="Esporcu" style="display:none">Esporcu</option>
+    <option value="Sporcu" style="display:none">Sporcu</option>
+  </select>
+
+  <div style="margin-top:8px">
+    <button id="toParticipationBtn" class="bigBtn">Devam</button>
+  </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  KATILIM DURUMU                                           -->
+<!-- ========================================================= -->
+<div id="participationCard" class="card hidden">
+  <h3>Katılım Durumu</h3>
+  <div id="participationOptions" class="small"></div>
+  <div style="margin-top:8px">
+    <button id="toNextStepBtn" class="bigBtn">Devam</button>
+  </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  ONAM FORMU (Kısa + Uzun Dinamik)                         -->
+<!-- ========================================================= -->
+<div id="consentCard" class="card hidden">
+  <h3>Aydınlatılmış Onam</h3>
+
+  <div id="consentText" 
+       style="border:1px solid #ddd;padding:8px;border-radius:6px;max-height:220px;overflow:auto">
+  </div>
+
+  <button id="openConsentPopup" class="bigBtn" style="margin-top:10px">
+    Onam Formunun Tam Metnini Görüntüle
+  </button>
+
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button id="consentAccept"  class="bigBtn btnGreen">Okudum, onaylıyorum</button>
+    <button id="consentDecline" class="bigBtn btnRed">Kabul etmiyorum</button>
+  </div>
+
+  <div id="consentDeclinedMsg" class="small hidden" style="margin-top:10px;color:#c0392b">
+    Katılım kabul edilmedi. Deney sonlandırıldı.
+  </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  UZUN ONAM – MODAL                                        -->
+<!-- ========================================================= -->
+<div id="consentModal" class="modal hidden">
+  <div class="modal-content">
+    <span id="closeConsentModal" class="close">&times;</span>
+    <h3>Aydınlatılmış Onam Formu (Tam Metin)</h3>
+    <div id="consentModalContent"></div>
+  </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  KATILIMCI BİLGİLERİ                                      -->
+<!-- ========================================================= -->
+<div id="infoCard" class="card hidden">
+  <h3>Katılımcı Bilgileri</h3>
+  <div class="small">Ad ve soyad için ilk 2 harf yeterli.</div>
+
+  <input id="name" placeholder="Ad (ilk 2 harf)">
+  <input id="surname" placeholder="Soyad (ilk 2 harf)">
+  <input id="age" type="number" placeholder="Yaş">
+  <input id="email" type="email" placeholder="E-posta adresiniz">
+  <input id="phone" type="tel" placeholder="Telefon numarası">
+  <input id="race" placeholder="Doğum yeri / Irk">
+  <input id="motherTongue" placeholder="Anadiliniz">
+  <select id="gender">
+    <option value="">Cinsiyet</option>
+    <option>Kadın</option>
+    <option>Erkek</option>
+    <option>Diğer</option>
+  </select>
+
+  <div id="codeInfo" class="small" style="margin-top:6px;color:#2c3e50"></div>
+
+  <div style="margin-top:8px">
+    <button id="toHandFromInfo" class="bigBtn">Devam</button>
+  </div>
+</div>
+<!-- ========================================================= -->
+<!--  ÖNCEKİ KOD KARTI                                          -->
+<!-- ========================================================= -->
+<div id="enterCodeCard" class="card hidden">
+  <h3>Önceki Katılımcı Kodu</h3>
+  <div class="small">Daha önce katıldıysanız lütfen katılımcı kodunuzu girin.</div>
+  <input id="previousCode" placeholder="Örnek: MG_AB_12345">
+  <div style="margin-top:8px">
+    <button id="toStaiDirectBtn" class="bigBtn">Devam</button>
+  </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  EL KULLANIMI                                              -->
+<!-- ========================================================= -->
+<div id="handUseCard" class="card hidden">
+  <h3>El Kullanımı Testi</h3>
+  <p class="small">Her satırda tam olarak 2 kutucuk işaretleyiniz.</p>
+  <div id="handUseQuestions"></div>
+  <div style="margin-top:8px">
+    <button id="toStaiBtn" class="bigBtn">Devam</button>
+  </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  STAI                                                      -->
+<!-- ========================================================= -->
+<div id="staiCard" class="card hidden">
+  <h3>STAI-TXI Formu</h3>
+  <p class="small">Lütfen tüm maddeleri yanıtlayınız.</p>
+  <div id="staiQuestions"></div>
+  <div style="margin-top:8px">
+    <button id="toHearingBtn" class="bigBtn">Devam</button>
+  </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  İŞİTME TESTİ                                              -->
+<!-- ========================================================= -->
+<div id="hearingCard" class="card hidden">
+  <h3>İşitme Kontrolü</h3>
+  <p class="small">Sol ve sağ kulağın ses seviyesini ayarlayınız.</p>
+
+  <label><b>Sol Kulak</b></label>
+  <input type="range" id="leftSlider" min="0" max="1" step="0.01" value="0.5">
+  <button id="playLeft" class="bigBtn">Sol Oynat</button>
+
+  <br><br>
+
+  <label><b>Sağ Kulak</b></label>
+  <input type="range" id="rightSlider" min="0" max="1" step="0.01" value="0.5">
+  <button id="playRight" class="bigBtn">Sağ Oynat</button>
+
+  <div style="margin-top:12px">
+    <button id="toSessionIntro" class="bigBtn">Devam</button>
+  </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  OTURUM GİRİŞ                                             -->
+<!-- ========================================================= -->
+<div id="sessionIntro" class="card hidden">
+  <h3 id="sessionTitle"></h3>
+  <p id="sessionInstr"></p>
+  <div style="margin-top:8px">
+    <button id="sessionStartBtn" class="bigBtn">Başla</button>
+  </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  DENEY EKRANI                                              -->
+<!-- ========================================================= -->
+<div id="trialCard" class="card hidden">
+  <div id="trialStatus" class="small" style="margin-bottom:8px"></div>
+  <audio id="stimAudio" preload="auto"></audio>
+
+  <div class="respRow">
+    <button class="respBtn" data-val="BA">BA</button>
+    <button class="respBtn" data-val="DA">DA</button>
+    <button class="respBtn" data-val="GA">GA</button>
+    <button class="respBtn" data-val="KA">KA</button>
+    <button class="respBtn" data-val="PA">PA</button>
+    <button class="respBtn" data-val="TA">TA</button>
+  </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  DENEY BİTTİ                                               -->
+<!-- ========================================================= -->
+<div id="endCard" class="card hidden">
+  <h3>Deney tamamlandı ✅</h3>
+  <div id="doneLog" class="small"></div>
+</div>
+
+
+<!-- ========================================================= -->
+<!--  JAVASCRIPT BAŞLANGICI                                     -->
+<!-- ========================================================= -->
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+
+/* ========================================================= */
+/*  PROJEYE ÖZGÜ ONAM METİNLERİ (Migren aktif)               */
+/* ========================================================= */
+const consentTexts = {
+  "Migren": {
+    short: `
+      <p><b>Sayın katılımcı,</b></p>
+      <p>Bu çalışma migren ve işitsel algı süreçleri ilişkisini araştırmaktadır.
+      Katılım tamamen gönüllüdür, dilediğiniz anda çalışmadan çekilebilirsiniz.</p>
+    `,
+    long: `
+      <h4>Migren Projesi – Aydınlatılmış Onam Formu</h4>
+      <p>Bu araştırma, migrenli bireylerde işitsel algı süreçlerini değerlendirmeyi amaçlamaktadır.</p>
+      <p>Katılım gönüllülük esasına dayalıdır ve veriler anonim olarak saklanacaktır.</p>
+      <p>Dilediğiniz zaman çalışmadan çekilme hakkınız bulunmaktadır.</p>
+      <p>Herhangi bir risk veya ek yük beklenmemektedir.</p>
+      <p>Daha fazla bilgi için araştırmacılarla iletişime geçebilirsiniz.</p>
+      <p><i>Bu metin örnek olarak hazırlanmıştır — istersen gerçek metni gönderebilirsin.</i></p>
+    `
+  },
+
+  "OykuTez": { short:`<p>Pasif proje.</p>`, long:`<p>Pasif proje.</p>` },
+  "Esporcu": { short:`<p>Pasif proje.</p>`, long:`<p>Pasif proje.</p>` },
+  "Sporcu": { short:`<p>Pasif proje.</p>`, long:`<p>Pasif proje.</p>` }
+};
+
+
+/* ========================================================= */
+/*  GENEL DEĞİŞKENLER                                         */
+/* ========================================================= */
+const $id = id => document.getElementById(id);
+
+let participant = {};
+let results = [];
+let sessionOrder = [];
+let currentSessionIndex = 0;
+let currentTrial = -1;
+let isResponseAllowed = false;
+let responseStart = 0;
+let trialTimeout = null;
+
+/* ========================================================= */
+/*  KATILIM DURUMU                                            */
+/* ========================================================= */
+$id('toParticipationBtn').onclick = ()=>{
+  const proj = $id('projectCode').value;
+  if (!proj) return alert("Lütfen proje kodu seçiniz.");
+  participant.projectCode = proj;
+
+  $id('projectCard').classList.add('hidden');
+  $id('participationCard').classList.remove('hidden');
+
+  // Migren için sadece 2 seçenek görünür
+  $id('participationOptions').innerHTML = `
+    <label><input type="radio" name="participation" value="1"> İlk kez katılıyorum</label>
+    <label><input type="radio" name="participation" value="2"> Daha önce katıldım</label>
+  `;
+};
+
+
+/* ========================================================= */
+/*  ONAM                                                      */
+/* ========================================================= */
+$id('toNextStepBtn').onclick = ()=>{
+  const sel = document.querySelector('input[name="participation"]:checked');
+  if (!sel) return alert("Lütfen seçim yapınız.");
+  participant.participation = sel.value;
+
+  $id('participationCard').classList.add('hidden');
+
+  if (sel.value === "1") {
+    const proj = participant.projectCode;
+    $id('consentText').innerHTML = consentTexts[proj].short;
+    $id('consentModalContent').innerHTML = consentTexts[proj].long;
+    $id('consentCard').classList.remove('hidden');
+  } else {
+    $id('enterCodeCard').classList.remove('hidden');
+  }
+};
+
+$id('openConsentPopup').onclick = ()=> $id('consentModal').style.display = 'block';
+$id('closeConsentModal').onclick = ()=> $id('consentModal').style.display = 'none';
+
+window.onclick = e=>{
+  if (e.target == $id('consentModal'))
+    $id('consentModal').style.display = 'none';
+};
+
+$id('consentAccept').onclick = ()=>{
+  $id('consentCard').classList.add('hidden');
+  $id('infoCard').classList.remove('hidden');
+};
+
+$id('consentDecline').onclick = ()=>{
+  $id('consentDeclinedMsg').classList.remove('hidden');
+  $id('consentAccept').disabled = true;
+  $id('consentDecline').disabled = true;
+};
+
+
+/* ========================================================= */
+/*  KATILIMCI BİLGİLERİ                                       */
+/* ========================================================= */
+$id('toHandFromInfo').onclick = ()=>{
+  const n = $id('name').value.trim();
+  const s = $id('surname').value.trim();
+  const a = $id('age').value.trim();
+  const e = $id('email').value.trim();
+  const p = $id('phone').value.trim();
+
+  if (!n || !s || !a || !e || !p)
+    return alert("Lütfen gerekli tüm bilgileri doldurunuz.");
+
+  participant.name = n.slice(0,2);
+  participant.surname = s.slice(0,2);
+  participant.age = a;
+  participant.email = e;
+  participant.phone = p;
+  participant.race = $id('race').value.trim();
+  participant.motherTongue = $id('motherTongue').value.trim();
+  participant.gender = $id('gender').value;
+
+  const initials = (participant.name + participant.surname).toUpperCase();
+  const rand = Math.floor(10000 + Math.random()*90000);
+  participant.code = "MG_" + initials + "_" + rand;
+
+  $id('codeInfo').innerText = "Katılımcı kodu: " + participant.code;
+
+  $id('infoCard').classList.add('hidden');
+  $id('handUseCard').classList.remove('hidden');
+
+  renderHand();
+};
+
+
+/* ========================================================= */
+/*  EL KULLANIMI                                              */
+/* ========================================================= */
+const handQs = [
+  "Yazmak","Çizmek","Taş Atmak","Makas kullanmak","Diş fırçası",
+  "Bıçak kullanmak","Kaşık kullanmak","Süpürge","Kibrit çakmak","Kapak açmak"
+];
+
+function renderHand(){
+  const c = $id('handUseQuestions');
+  c.innerHTML = `
+    <div class="hand-grid-header">
+      <div style="flex:2"></div>
+      <div style="flex:1;text-align:center">Sol</div>
+      <div style="flex:1;text-align:center">Sağ</div>
+    </div>
+  `;
+  handQs.forEach((q,i)=>{
+    c.innerHTML += `
+      <div class="hand-grid-row" data-q="${i+1}">
+        <span>${i+1}. ${q}</span>
+        <div class="col"><input type="checkbox" class="left"><input type="checkbox" class="left"></div>
+        <div class="col"><input type="checkbox" class="right"><input type="checkbox" class="right"></div>
+      </div>`;
+  });
+}
+
+$id('toStaiBtn').onclick = ()=>{
+  const rows = document.querySelectorAll('.hand-grid-row');
+  for (const r of rows) {
+    if (r.querySelectorAll('input:checked').length !== 2)
+      return alert("Her satırda tam 2 kutucuk olmalıdır.");
+  }
+
+  participant.handUse = Array.from(rows).map(r=>({
+    q:r.dataset.q,
+    left:r.querySelectorAll('.left:checked').length,
+    right:r.querySelectorAll('.right:checked').length
+  }));
+
+  $id('handUseCard').classList.add('hidden');
+  $id('staiCard').classList.remove('hidden');
+  renderStai();
+};
+
+
+/* ========================================================= */
+/*  STAI                                                      */
+/* ========================================================= */
+const staiQuestions=[
+  "Şu anda sakinim","Kendimi emniyette hissediyorum","Şu anda sinirlerim gergin",
+  "Pişmanlık duyuyorum","Huzurluyum","Keyfim yok","Endişeliyim","Dinlenmiş hissediyorum",
+  "Kaygılıyım","Rahatım","Kendime güvenim var","Asabım bozuk","Sinirliyim",
+  "Gergin hissediyorum","Rahatlamış hissediyorum","Halimden memnunum",
+  "Endişeliyim","Heyecanlıyım","Sevinçliyim","Keyfim yerinde"
+];
+
+function renderStai(){
+  const c=$id('staiQuestions'); c.innerHTML="";
+  staiQuestions.forEach((q,i)=>{
+    c.innerHTML+=`
+      <div class="question-group">
+        <p>${i+1}. ${q}</p>
+        <div class="stai-options">
+          <label><input type="radio" name="staiQ${i+1}" value="1">Hiç</label>
+          <label><input type="radio" name="staiQ${i+1}" value="2">Biraz</label>
+          <label><input type="radio" name="staiQ${i+1}" value="3">Çok</label>
+          <label><input type="radio" name="staiQ${i+1}" value="4">Tamamıyla</label>
+        </div>
+      </div>`;
+  });
+}
+
+$id('toHearingBtn').onclick=()=>{
+  const answered=document.querySelectorAll('#staiQuestions input:checked').length;
+  if(answered<staiQuestions.length)
+    return alert("Lütfen tüm soruları yanıtlayın.");
+
+  participant.staiAnswers={};
+  document.querySelectorAll('#staiQuestions input:checked')
+    .forEach(i=>participant.staiAnswers[i.name]=i.value);
+
+  $id('staiCard').classList.add('hidden');
+  $id('hearingCard').classList.remove('hidden');
+};
+
+
+/* ========================================================= */
+/*  İŞİTME KONTROLÜ                                           */
+/* ========================================================= */
+let audioCtx=null,leftOsc=null,rightOsc=null;
+function ensureCtx(){ if(!audioCtx) audioCtx=new AudioContext(); }
+
+function stopBoth(){ try{leftOsc.stop()}catch{} try{rightOsc.stop()}catch{} }
+
+async function playTone(channel){
+  ensureCtx();
+  stopBoth();
+  if(audioCtx.state==='suspended') await audioCtx.resume();
+
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  const pan=audioCtx.createStereoPanner();
+
+  pan.pan.value = channel==="L" ? -1 : 1;
+  gain.gain.value = channel==="L"
+      ? Number($id('leftSlider').value)
+      : Number($id('rightSlider').value);
+
+  osc.frequency.value=1500;
+  osc.connect(gain); gain.connect(pan); pan.connect(audioCtx.destination);
+  osc.start();
+
+  if(channel==="L") leftOsc=osc;
+  else rightOsc=osc;
+
+  setTimeout(()=>{ try{osc.stop()}catch{} },1200);
+}
+
+$id('playLeft').onclick = ()=> playTone("L");
+$id('playRight').onclick = ()=> playTone("R");
+
+$id('toSessionIntro').onclick = ()=>{
+  participant.leftLevel=$id('leftSlider').value;
+  participant.rightLevel=$id('rightSlider').value;
+
+  $id('hearingCard').classList.add('hidden');
+
+  sessionOrder=["training","NF", ...["FR","FL"].sort(()=>Math.random()-0.5)];
+  currentSessionIndex=0;
+
+  showSessionIntro();
+};
+
+
+/* ========================================================= */
+/*  OTURUM BAŞLANGICI                                         */
+/* ========================================================= */
+function showSessionIntro(){
+  const s=sessionOrder[currentSessionIndex];
+
+  $id('sessionTitle').innerText = "Oturum: "+s;
+
+  $id('sessionInstr').innerHTML =
+    s==="training" ? "Eğitim oturumu – heceleri dinleyin." :
+    s==="NF"       ? "En iyi duyduğunuz heceyi seçiniz." :
+    s==="FR"       ? "Sağ kulağa odaklanın." :
+                     "Sol kulağa odaklanın.";
+
+  $id('sessionIntro').classList.remove('hidden');
+}
+
+$id('sessionStartBtn').onclick=()=>{
+  $id('sessionIntro').classList.add('hidden');
+  startSession();
+};
+
+
+/* ========================================================= */
+/*  DENEY OYNATMA                                             */
+/* ========================================================= */
+const trainingPlaylist=[
+  "LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav",
+  "LBA-RDA.wav","LDA-RGA.wav","LGA-RKA.wav","LKA-RTA.wav"
+];
+
+const mainPlaylist=[
+  "LBA-RKA.wav","LDA-RGA.wav","LPA-RBA.wav","LKA-RDA.wav","LBA-RBA.wav","LTA-RGA.wav",
+  "LBA-RDA.wav","LGA-RPA.wav","LDA-RKA.wav","LPA-RTA.wav","LKA-RKA.wav","LBA-RGA.wav",
+  "LKA-RPA.wav","LTA-RDA.wav","LGA-RKA.wav","LPA-RDA.wav","LGA-RGA.wav","LBA-RTA.wav",
+  "LGA-RDA.wav","LKA-RTA.wav","LDA-RPA.wav","LTA-RKA.wav","LPA-RPA.wav","LDA-RBA.wav",
+  "LGA-RTA.wav","LPA-RKA.wav","LTA-RBA.wav","LKA-RGA.wav","LTA-RTA.wav","LBA-RPA.wav",
+  "LDA-RTA.wav","LGA-RBA.wav","LTA-RPA.wav","LDA-RDA.wav","LKA-RBA.wav","LPA-RGA.wav"
+];
+
+function startSession(){
+  currentTrial=-1;
+  $id('trialCard').classList.remove('hidden');
+  nextTrial();
+}
+
+const stimAudio=$id('stimAudio');
+
+function nextTrial(){
+  clearTimeout(trialTimeout);
+
+  const s=sessionOrder[currentSessionIndex];
+  const playlist = (s==="training") ? trainingPlaylist : mainPlaylist;
+
+  currentTrial++;
+  if(currentTrial>=playlist.length){
+    $id('trialCard').classList.add('hidden');
+    currentSessionIndex++;
+
+    if(currentSessionIndex < sessionOrder.length)
+      showSessionIntro();
+    else
+      endExperiment();
+    return;
+  }
+
+  const stim=playlist[currentTrial];
+  $id('trialStatus').innerText=`Deneme ${currentTrial+1}/${playlist.length} (${s})`;
+  playStim(stim);
+}
+
+async function playStim(stim){
+  isResponseAllowed=false;
+  const path='./sounds/yeni/erkek/'+stim;
+
+  try{
+    stimAudio.src=path;
+    await stimAudio.play();
+    responseStart=Date.now();
+    setTimeout(()=>isResponseAllowed=true,500);
+
+    trialTimeout=setTimeout(()=>{
+      const s=sessionOrder[currentSessionIndex];
+      if(s!=="training") saveTrial(stim,"no_response","");
+      nextTrial();
+    },4000);
+
+  }catch{
+    nextTrial();
+  }
+}
+
+
+/* ========================================================= */
+/*  YANITLAR                                                  */
+/* ========================================================= */
+document.querySelectorAll('.respBtn').forEach(btn=>{
+  btn.onclick=()=>{
+    if(!isResponseAllowed) return;
+    isResponseAllowed=false;
+
+    clearTimeout(trialTimeout);
+
+    const rt=Date.now()-responseStart;
+    const resp=btn.dataset.val;
+    const s=sessionOrder[currentSessionIndex];
+    const stim=(s==="training") ? trainingPlaylist[currentTrial] : mainPlaylist[currentTrial];
+
+    if(s!=="training")
+      saveTrial(stim,resp,rt);
+
+    btn.classList.add('respBtn-active');
+    setTimeout(()=>btn.classList.remove('respBtn-active'),300);
+
+    setTimeout(()=>nextTrial(),2500);
+  };
+});
+
+function saveTrial(stim,response,rt){
+  results.push({
+    session:sessionOrder[currentSessionIndex],
+    trial:currentTrial+1,
+    stim,response,responseTime:rt,
+    leftLevel:participant.leftLevel,
+    rightLevel:participant.rightLevel,
+    age:participant.age,
+    gender:participant.gender,
+    race:participant.race,
+    motherTongue:participant.motherTongue,
+    handUseAnswers:JSON.stringify(participant.handUse),
+    staiAnswers:JSON.stringify(participant.staiAnswers),
+    code:participant.code
+  });
+}
+
+
+/* ========================================================= */
+/*  CSV + E-POSTA                                             */
+/* ========================================================= */
+function makeCsv(){
+  let csv="SESSION,TRIAL,STIM,RESPONSE,RT,CODE\n";
+  results.forEach(r=>{
+    csv+=`${r.session},${r.trial},${r.stim},${r.response},${r.responseTime},${participant.code}\n`;
+  });
+  return csv;
+}
+
+async function sendEmail(){
+  const csv=makeCsv();
+  try{
+    if(!window.emailjs){
+      await new Promise(res=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+        s.onload=res; document.head.appendChild(s);
+      });
+      emailjs.init(document.querySelector('meta[name="emailjs-user"]').content);
+    }
+    await emailjs.send(
+      document.querySelector('meta[name="emailjs-service"]').content,
+      document.querySelector('meta[name="emailjs-template"]').content,
+      {subject:participant.code, message:csv}
+    );
+    $id('doneLog').innerText="Veriler e-posta ile gönderildi.";
+  }catch{
+    $id('doneLog').innerText="E-posta gönderilemedi.";
+  }
+}
+
+/* ========================================================= */
+/*  DENEY BİTİŞ                                               */
+/* ========================================================= */
+async function endExperiment(){
+  $id('trialCard').classList.add('hidden');
+  $id('endCard').classList.remove('hidden');
+  await sendEmail();
+}
+
+}); // DOMContentLoaded
+</script>
+
+</body>
+</html>
+
