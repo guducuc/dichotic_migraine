@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI Testi (macOS Fix)</title>
+<title>Dikotik & CI Testi (Sonuç Ekranlı)</title>
 
 <meta name="emailjs-user"    content="FLn2zMqKDGso3ePoO">
 <meta name="emailjs-service" content="service_a8bnfmk">
@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <style>
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f0f2f5; color:#333; max-width: 500px; margin: auto;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f0f2f5; color:#333; max-width: 600px; margin: auto;}
   h1{font-size:1.3rem; text-align:center; margin-bottom:20px; color:#2c3e50;}
   .card{background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.1); padding:20px; margin-bottom:15px;}
   .hidden{display:none !important;}
@@ -21,13 +21,13 @@
   input[type="radio"], input[type="checkbox"] { width: 22px; height: 22px; margin-right: 10px; vertical-align: bottom; }
   label { display: flex; align-items: center; margin-bottom: 12px; font-size: 15px; cursor:pointer; }
   
-  .bigBtn { width:100%; padding:16px; border:none; border-radius:8px; background:#3498db; color:white; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; }
+  .bigBtn { width:100%; padding:16px; border:none; border-radius:8px; background:#3498db; color:white; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; transition: background 0.2s; }
   .bigBtn:active { background:#2980b9; transform:scale(0.98); }
   .btnGreen { background:#27ae60; } .btnRed { background:#c0392b; }
 
   /* Yükleme Ekranı */
-  #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index: 2000; display:flex; flex-direction:column; justify-content:center; align-items:center; }
-  .loader { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+  #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index: 2000; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+  .loader { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px; }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
   .respRow { display:flex; gap:8px; margin-top:15px; }
@@ -36,6 +36,13 @@
   
   #ciInfoDisplay { background: #fff3cd; color: #856404; padding: 15px; text-align: center; border-radius: 6px; margin-bottom: 15px; font-weight: bold; border: 1px solid #ffeeba; }
   
+  /* Sonuç Tablosu */
+  table.results-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  table.results-table th, table.results-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+  table.results-table th { background-color: #f2f2f2; font-weight: bold; }
+  .res-correct { color: green; font-weight: bold; }
+  .res-wrong { color: red; font-weight: bold; }
+
   .modal{position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none}
   .modal-content{background:#fff;margin:10% auto;padding:20px;border-radius:10px;max-width:90%;max-height:80vh;overflow-y:auto}
   .close{float:right;font-size:28px;font-weight:bold;cursor:pointer}
@@ -48,7 +55,7 @@
 <div id="loadingOverlay" class="hidden">
   <div class="loader"></div>
   <div style="font-weight:bold; font-size:18px;">Sesler Yükleniyor...</div>
-  <div id="loadingText" style="margin-top:5px; color:#666;">%0</div>
+  <div id="loadingText" style="margin-top:10px; color:#666; font-size: 16px;">%0</div>
 </div>
 
 <div id="card_project" class="card">
@@ -182,6 +189,11 @@
 <div id="card_end" class="card hidden">
   <h3>Deney Tamamlandı ✅</h3>
   <p id="endLog" style="color:green; font-weight:bold;">Veriler gönderiliyor...</p>
+  
+  <div style="margin-top:20px;">
+    <h4>Sonuçlarınız</h4>
+    <div id="resultTableContainer" style="overflow-x:auto;"></div>
+  </div>
 </div>
 
 <script>
@@ -196,7 +208,7 @@ function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.
 // --- GLOBAL VERİLER ---
 let DATA = { project:'', results:[] };
 let audioCtx = null;
-let audioBuffers = {}; // TÜM SESLER BURADA SAKLANACAK (RAM)
+let audioBuffers = {}; // TÜM SESLER BURADA (RAM)
 let ciQueue = [];
 let ciIndex = 0;
 let dicoticQueue = [];
@@ -207,7 +219,7 @@ let currentSession = '';
 
 // --- DOSYALAR ---
 const ALL_FILES = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav", "LBA-RKA.wav","LDA-RGA.wav","LPA-RBA.wav","LKA-RDA.wav","LBA-RBA.wav","LTA-RGA.wav","LBA-RDA.wav","LGA-RPA.wav","LDA-RKA.wav","LPA-RTA.wav","LKA-RKA.wav","LBA-RGA.wav","LKA-RPA.wav","LTA-RDA.wav","LGA-RKA.wav","LPA-RDA.wav","LGA-RGA.wav","LBA-RTA.wav","LGA-RDA.wav","LKA-RTA.wav","LDA-RPA.wav","LTA-RKA.wav","LPA-RPA.wav","LDA-RBA.wav","LGA-RTA.wav","LPA-RKA.wav","LTA-RBA.wav","LKA-RGA.wav","LTA-RTA.wav","LBA-RPA.wav","LDA-RTA.wav","LGA-RBA.wav","LTA-RPA.wav","LDA-RDA.wav","LKA-RBA.wav","LPA-RGA.wav"];
-const UNIQUE_FILES = [...new Set(ALL_FILES)]; // Tekrarları temizle
+const UNIQUE_FILES = [...new Set(ALL_FILES)]; 
 const PATH = "./sounds/yeni/erkek/"; 
 
 // --- SES MOTORU (PRELOADER İLE) ---
@@ -219,7 +231,7 @@ function initAudio() {
   if(audioCtx.state === 'suspended') { audioCtx.resume(); }
 }
 
-// 1. ÖN YÜKLEME FONKSİYONU (macOS Çözümü)
+// 1. ÖN YÜKLEME FONKSİYONU (Düzeltildi)
 async function preloadAllSounds() {
   initAudio();
   $id('loadingOverlay').classList.remove('hidden');
@@ -233,7 +245,10 @@ async function preloadAllSounds() {
       audioBuffers[filename] = audioBuffer;
       
       loadedCount++;
-      $id('loadingText').innerText = `%{Math.round((loadedCount / UNIQUE_FILES.length) * 100)}`;
+      // HATA BURADAYDI, ŞİMDİ DÜZELDİ:
+      const percent = Math.round((loadedCount / UNIQUE_FILES.length) * 100);
+      $id('loadingText').innerText = "%" + percent;
+      
     } catch (e) {
       console.error("Yükleme hatası:", filename, e);
     }
@@ -256,34 +271,27 @@ document.body.addEventListener('touchstart', kickstartAudio);
 
 // --- AKIŞ ---
 
-// 1. Proje
 $id('btn_project').onclick = () => {
   const p = $id('projectCode').value;
   if(!p) return alert("Lütfen proje seçiniz.");
   DATA.project = p;
-  
-  // PROJE SEÇİLİNCE HEMEN YÜKLEMEYE BAŞLA
-  preloadAllSounds(); 
-  
+  preloadAllSounds(); // HEMEN BAŞLA
   show('card_participation');
 };
 
-// 2. Katılım
 $id('btn_part').onclick = () => {
   show('card_consent');
   let txt = "Bu çalışma bilimsel amaçlarla yapılmaktadır.";
-  if(DATA.project === 'CI') txt = "CI Zamanlama Çalışması Bilgilendirme...";
+  if(DATA.project === 'CI') txt = "CI Zamanlama Çalışması...";
   $id('consentTextPreview').innerText = txt;
   $id('modalBody').innerHTML = txt;
 };
 
-// 3. Onam
 $id('btn_showConsent').onclick = () => { $id('consentModal').style.display='block'; };
 $id('closeModal').onclick = () => { $id('consentModal').style.display='none'; };
 $id('btn_accept').onclick = () => { show('card_info'); };
 $id('btn_decline').onclick = () => { alert("Reddedildi."); };
 
-// 4. Bilgi
 $id('btn_info').onclick = () => {
   const n = $id('inp_name').value.trim();
   const s = $id('inp_surname').value.trim();
@@ -302,15 +310,11 @@ $id('btn_info').onclick = () => {
   else show('card_hand'); 
 };
 
-// 5. Özel Formlar
 $id('btn_espor').onclick = () => { DATA.espor = { years: $id('esp_years').value }; show('card_hand'); };
 $id('btn_spor').onclick = () => { DATA.spor = { years: $id('sp_years').value }; show('card_hand'); };
-
-// 6. El & 7. STAI
 $id('btn_hand').onclick = () => { show('card_stai'); };
 $id('btn_stai').onclick = () => { show('card_hearing'); };
 
-// 8. İşitme
 $id('btn_playL').onclick = () => playTone(-1);
 $id('btn_playR').onclick = () => playTone(1);
 
@@ -340,7 +344,6 @@ function initCITest() {
   ciQueue = [];
   const delays = [0, 0.003, 0.006, 0.009];
   delays.forEach(d => { ciQueue.push({type:'tone', delay:d, lead:'Left'}); if(d>0) ciQueue.push({type:'tone', delay:d, lead:'Right'}); });
-  // Sadece ilk 6 dosya CI için
   ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav"].forEach(f => {
     delays.forEach(d => { ciQueue.push({type:'speech', file:f, delay:d, lead:'Left'}); if(d>0) ciQueue.push({type:'speech', file:f, delay:d, lead:'Right'}); });
   });
@@ -356,7 +359,7 @@ async function playNextCI() {
   
   isClickable = false;
   const t = ciQueue[ciIndex];
-  $id('ciInfoDisplay').innerHTML = `<strong>${t.type==='tone'?'BİP':'HECE'}</strong><br>Soru ${ciIndex+1}`;
+  $id('ciInfoDisplay').innerHTML = `<strong>${t.type==='tone'?'SAF SES':'HECE'}</strong><br>Soru ${ciIndex+1} / ${ciQueue.length}`;
   document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 0.5);
 
   if(t.type === 'tone') playToneITD(t); else playSpeechFromBuffer(t);
@@ -387,17 +390,14 @@ function playToneITD(t) {
   oscL.start(tL); oscL.stop(tL+0.5); oscR.start(tR); oscR.stop(tR+0.5);
 }
 
-// ARTIK FETCH YOK, BUFFER'DAN ÇAL
 function playSpeechFromBuffer(t) {
-  const buffer = audioBuffers[t.file]; // <--- PRELOAD EDİLEN SES BURADAN ALINIYOR
+  const buffer = audioBuffers[t.file];
   if(!buffer) { console.error("Buffer yok:", t.file); return; }
 
-  const srcL = audioCtx.createBufferSource();
-  const srcR = audioCtx.createBufferSource();
+  const srcL = audioCtx.createBufferSource(); const srcR = audioCtx.createBufferSource();
   const bL = audioCtx.createBuffer(1, buffer.length, buffer.sampleRate);
   const bR = audioCtx.createBuffer(1, buffer.length, buffer.sampleRate);
-  bL.copyToChannel(buffer.getChannelData(0), 0);
-  bR.copyToChannel(buffer.getChannelData(1), 0);
+  bL.copyToChannel(buffer.getChannelData(0), 0); bR.copyToChannel(buffer.getChannelData(1), 0);
   srcL.buffer = bL; srcR.buffer = bR;
   
   const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
@@ -421,7 +421,13 @@ document.querySelectorAll('.ciBtn').forEach(btn => {
   btn.onclick = () => {
     if(!isClickable) return;
     const t = ciQueue[ciIndex];
-    DATA.results.push({session:'CI_ITD', trial:ciIndex+1, type:t.type, stim:t.file||'Tone', delay:t.delay, lead:t.lead, resp:btn.dataset.ans});
+    // DOĞRU CEVAP KONTROLÜ
+    let correct = "Wrong";
+    if(t.delay === 0 && btn.dataset.ans === "Equal") correct = "Correct";
+    else if(t.lead === btn.dataset.ans) correct = "Correct";
+    
+    DATA.results.push({session:'CI_ITD', trial:ciIndex+1, type:t.type, stim:t.file||'Tone', delay:t.delay, lead:t.lead, resp:btn.dataset.ans, isCorrect:correct});
+    
     btn.style.background = '#3498db'; btn.style.color = '#fff';
     setTimeout(()=>{ btn.style.background = '#ecf0f1'; btn.style.color = '#2c3e50'; }, 200);
     ciIndex++; setTimeout(playNextCI, 1500);
@@ -442,10 +448,8 @@ $id('btn_startSession').onclick = () => {
   kickstartAudio();
   $id('btn_startSession').classList.add('hidden');
   $id('dicoticTrials').classList.remove('hidden');
-  
   if(currentSession === 'training') dicoticQueue = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav"];
-  else dicoticQueue = mainPlaylist; // Yukarıdaki uzun liste
-  
+  else dicoticQueue = mainPlaylist;
   dicoticIndex = 0; playNextDicotic();
 };
 
@@ -455,41 +459,62 @@ function playNextDicotic() {
   $id('dicoticInfo').innerText = (dicoticIndex+1) + " / " + dicoticQueue.length;
   
   const file = dicoticQueue[dicoticIndex];
-  
-  // BURADA DA FETCH YERİNE BUFFER KULLANIYORUZ
-  const buffer = audioBuffers[file];
+  const buffer = audioBuffers[file]; // Preload'dan çek
   if(buffer) {
     const src = audioCtx.createBufferSource();
     src.buffer = buffer;
-    
-    // Stereo Pan Yok (Olduğu gibi çal) ama Gain var
     const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
     const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR);
-    const split = audioCtx.createChannelSplitter(2);
-    const merge = audioCtx.createChannelMerger(2);
+    const split = audioCtx.createChannelSplitter(2); const merge = audioCtx.createChannelMerger(2);
     
-    src.connect(split);
-    split.connect(gL, 0); split.connect(gR, 1);
+    src.connect(split); split.connect(gL, 0); split.connect(gR, 1);
     gL.connect(merge, 0, 0); gR.connect(merge, 0, 1);
     merge.connect(audioCtx.destination);
-    
     src.start(0);
   }
-  
   setTimeout(()=>{ isClickable = true; }, 500);
 }
 
 document.querySelectorAll('.dicoticBtn').forEach(btn => {
   btn.onclick = () => {
     if(!isClickable) return;
-    DATA.results.push({ session: currentSession, trial: dicoticIndex+1, resp: btn.dataset.val });
+    const file = dicoticQueue[dicoticIndex];
+    // Basit Doğruluk Kontrolü (Dosya adında hece var mı?)
+    const isMatched = file.includes(btn.dataset.val) ? "Uyumlu" : "-";
+    
+    DATA.results.push({ session: currentSession, trial: dicoticIndex+1, stim:file, resp: btn.dataset.val, isCorrect: isMatched });
     dicoticIndex++; setTimeout(playNextDicotic, 1500);
   };
 });
 
-/* --- BİTİŞ --- */
+/* --- BİTİŞ & TABLO --- */
 function finishExp() {
   show('card_end');
+  
+  // SONUÇ TABLOSUNU OLUŞTUR
+  let html = '<table class="results-table"><thead><tr><th>Soru</th><th>Tür/Ses</th><th>Gecikme/Taraf</th><th>Yanıt</th><th>Durum</th></tr></thead><tbody>';
+  
+  DATA.results.forEach(r => {
+    let displayCorrect = "";
+    if(r.isCorrect === "Correct") displayCorrect = '<span class="res-correct">✅ Doğru</span>';
+    else if(r.isCorrect === "Wrong") displayCorrect = '<span class="res-wrong">❌ Yanlış</span>';
+    else displayCorrect = r.isCorrect; // Dikotik için
+    
+    let info = r.stim;
+    let detail = r.lead ? (r.lead + " +" + (r.delay*1000)+"ms") : "-";
+    
+    html += `<tr>
+      <td>${r.trial}</td>
+      <td>${info}</td>
+      <td>${detail}</td>
+      <td>${r.resp}</td>
+      <td>${displayCorrect}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  $id('resultTableContainer').innerHTML = html;
+
+  // EMAIL GÖNDERİMİ
   const csv = JSON.stringify(DATA);
   const C = {
       "Esporcu": { user:"Dcj_DG2JDke9NmiZa", service:"service_4l3letv", template:"template_m3i8rcd" },
