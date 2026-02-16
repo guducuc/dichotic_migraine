@@ -3,11 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI Testi — Final Tam Sürüm</title>
-
-<meta name="emailjs-user"    content="FLn2zMqKDGso3ePoO">
-<meta name="emailjs-service" content="service_a8bnfmk">
-<meta name="emailjs-template" content="template_r6sddff">
+<title>Dikotik & CI Testi — Hata Ayıklama Modu</title>
 
 <style>
   body{font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;margin:12px;color:#111;max-width:480px;margin:auto; background-color:#f9f9f9;}
@@ -15,9 +11,10 @@
   .card{padding:15px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.05);}
   .hidden{display:none !important;}
   input,select,textarea{padding:12px;margin:8px 0;width:100%;box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-size:16px;}
-
-  input[type="radio"], input[type="checkbox"] { width: auto; margin-right: 10px; transform: scale(1.2); }
-  #participationOptions label, .question-group label { display: flex; align-items: center; margin-bottom: 10px; font-size: 15px; cursor:pointer; }
+  
+  /* Radyo butonlarını büyüt */
+  input[type="radio"], input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; vertical-align: middle; }
+  #participationOptions label, .question-group label { display: flex; align-items: center; margin-bottom: 10px; font-size: 15px; cursor:pointer; padding:5px 0; }
 
   .bigBtn{font-size:1.1rem;padding:14px;border-radius:8px;border:none; background:#2c3e50; color:white; cursor:pointer; width:100%; margin-top:15px; font-weight:bold;}
   .bigBtn:active{transform:scale(0.98); background:#1a252f;}
@@ -27,7 +24,6 @@
   /* Yanıt Butonları */
   .respRow{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
   .respRow.three-col { grid-template-columns: 1fr 1fr 1fr; } 
-  
   .respBtn{ padding:15px; border-radius:8px; border:1px solid #ccc; background:#ecf0f1; cursor:pointer; text-align: center; font-weight:bold; color:#2c3e50; font-size:15px;}
   .respBtn-active{background:#2c3e50 !important; color:#fff !important;}
 
@@ -43,13 +39,20 @@
   .question-group{margin-bottom:20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px;}
   .question-title{font-weight: 700; font-size: 15px; margin-bottom: 8px; display: block;}
   
-  /* CI Bilgi Ekranı */
   #ciInfoDisplay { font-size: 15px; background:#fff3cd; color: #856404; text-align: center; padding: 15px; border: 1px solid #ffeeba; border-radius:6px; margin-bottom: 10px; }
   
   .modal{position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none}
   .modal-content{background:#fff;margin:10% auto;padding:20px;border-radius:10px;max-width:600px;max-height:80vh;overflow-y:auto}
   .close{float:right;font-size:28px;font-weight:bold;cursor:pointer;color:#888}
 </style>
+
+<script>
+  window.onerror = function(msg, url, line, col, error) {
+     alert("HATA OLUŞTU!\n\nMesaj: " + msg + "\nSatır: " + line);
+     return false;
+  };
+</script>
+
 </head>
 <body>
 <h1>Dikotik & CI Çalışması</h1>
@@ -171,11 +174,11 @@
   <h3>İşitme Kontrolü</h3>
   <p class="small" style="color:#c0392b; font-weight:bold;">⚠️ ÖNEMLİ (iPhone/iPad): Telefonun solundaki "Sessiz" tuşunu kapatın (zil sesi açık olmalı), aksi takdirde ses duyulmayabilir.</p>
   <div style="margin-top:10px; padding:10px; background:#f0f0f0; border-radius:6px;">
-    <label><b>Sol Kulak</b></label>
+    <label><b>Sol Kulak Test Sesi</b></label>
     <input type="range" id="leftSlider" min="0" max="1" step="0.01" value="0.5"><button id="playLeft" class="bigBtn" style="margin-top:5px; background:#3498db;">Sol Oynat 🔊</button>
   </div>
   <div style="margin-top:10px; padding:10px; background:#f0f0f0; border-radius:6px;">
-    <label><b>Sağ Kulak</b></label>
+    <label><b>Sağ Kulak Test Sesi</b></label>
     <input type="range" id="rightSlider" min="0" max="1" step="0.01" value="0.5"><button id="playRight" class="bigBtn" style="margin-top:5px; background:#3498db;">Sağ Oynat 🔊</button>
   </div>
   <button id="toSessionIntro" class="bigBtn">Testi Başlat</button>
@@ -217,8 +220,19 @@
 <script>
 document.addEventListener('DOMContentLoaded', ()=>{
 
+// Yardımcı Fonksiyon
 const $id = id => document.getElementById(id);
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
+
+/* --- E-POSTA AYARLARI (GÖMÜLÜ) --- */
+// Burayı HTML'den okumak yerine garanti olsun diye buraya koydum
+const EMAIL_USER_ID = "FLn2zMqKDGso3ePoO"; 
+const EMAIL_CONFIG = {
+  "Esporcu": { service: "service_a8bnfmk", template: "template_r6sddff" },
+  "OCM":     { service: "service_a8bnfmk", template: "template_r6sddff" },
+  "CI":      { service: "service_a8bnfmk", template: "template_r6sddff" },
+  "DEFAULT": { service: "service_a8bnfmk", template: "template_r6sddff" }
+};
 
 /* GLOBAL DEĞİŞKENLER */
 let participant = {}, results = [], sessionOrder = [], currentSessionIndex = 0, currentTrial = -1;
@@ -232,8 +246,12 @@ const ciDelays = [0, 0.003, 0.006, 0.009];
 
 /* iOS UNLOCKER */
 function unlockAudio() {
-  if (!audioCtx) { const AC = window.AudioContext || window.webkitAudioContext; audioCtx = new AC(); }
+  if (!audioCtx) { 
+    const AC = window.AudioContext || window.webkitAudioContext; 
+    audioCtx = new AC(); 
+  }
   if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+  
   const buffer = audioCtx.createBuffer(1, 1, 22050);
   const source = audioCtx.createBufferSource();
   source.buffer = buffer; source.connect(audioCtx.destination); source.start(0);
@@ -254,6 +272,8 @@ const handQuestions = [];
 const staiQuestions = []; 
 
 /* ---------------- FLOW ---------------- */
+
+// 1. PROJE SEÇİMİ
 $id('toParticipationBtn').onclick = ()=>{
   const proj = $id('projectCode').value;
   if(!proj){ alert('Lütfen proje seçiniz.'); return; }
@@ -270,6 +290,7 @@ function renderParticipationOptions(project){
     (needsSecond ? `<label><input type="radio" name="participation" value="3"> İkinci kez katılıyorum</label>` : '');
 }
 
+// 2. KATILIM DURUMU
 $id('toNextStepBtn').onclick = ()=>{
   const sel = document.querySelector('input[name="participation"]:checked');
   if(!sel){ alert('Seçim yapınız.'); return; }
@@ -282,12 +303,13 @@ $id('toNextStepBtn').onclick = ()=>{
   } else { $id('enterCodeCard').classList.remove('hidden'); }
 };
 
+// 3. ONAM
 $id('consentAccept').onclick = ()=>{ $id('consentCard').classList.add('hidden'); $id('infoCard').classList.remove('hidden'); };
 $id('consentDecline').onclick = ()=>{ $id('consentDeclinedMsg').classList.remove('hidden'); $id('consentAccept').disabled = true; };
 $id('openConsentPopup').onclick=()=>{ $id('consentModal').style.display='block'; };
 $id('closeConsentModal').onclick=()=>{ $id('consentModal').style.display='none'; };
 
-// KATILIMCI BİLGİSİ - DEVAM (BURASI DÜZELTİLDİ)
+// 4. KATILIMCI BİLGİSİ - DEVAM
 $id('toNextFromInfo').onclick = ()=>{
   const n = $id('name').value.trim();
   const s = $id('surname').value.trim();
@@ -307,6 +329,7 @@ $id('toNextFromInfo').onclick = ()=>{
   else { renderHand(); $id('handUseCard').classList.remove('hidden'); }
 };
 
+// 5. ESPORCU FORMU
 $id('toHandFromEsporcu').onclick = ()=>{
   const edu = document.querySelector('input[name="eduStatus"]:checked');
   const plat = document.querySelector('input[name="platform"]:checked');
@@ -320,6 +343,7 @@ $id('toHandFromEsporcu').onclick = ()=>{
   $id('esporcuFormCard').classList.add('hidden'); renderHand(); $id('handUseCard').classList.remove('hidden');
 };
 
+// 6. SPORCU FORMU
 $id('toHandFromSporcu').onclick = ()=>{
   const edu = document.querySelector('input[name="eduStatusSporcu"]:checked');
   const years = $id('sportYears').value;
@@ -330,6 +354,7 @@ $id('toHandFromSporcu').onclick = ()=>{
   $id('sporcuFormCard').classList.add('hidden'); renderHand(); $id('handUseCard').classList.remove('hidden');
 };
 
+// 7. EL TERCİHİ
 function renderHand(){
   const c = $id('handUseQuestions'); c.innerHTML = '';
   if(handQuestions.length>0){
@@ -342,6 +367,7 @@ $id('toStaiBtn').onclick = ()=>{
     $id('handUseCard').classList.add('hidden'); renderStai(); $id('staiCard').classList.remove('hidden'); 
 };
 
+// 8. STAI
 function renderStai(){
   const c = $id('staiQuestions'); c.innerHTML = '';
   if(staiQuestions.length>0){
@@ -513,9 +539,6 @@ document.querySelectorAll('.dicoticRespBtn').forEach(btn=>{
   };
 });
 
-/* EMAIL */
-const EMAIL_CONFIG = { "Esporcu": { service: "service_a8bnfmk", template: "template_r6sddff" }, "OCM": { service: "service_a8bnfmk", template: "template_r6sddff" }, "CI": { service: "service_a8bnfmk", template: "template_r6sddff" }, "DEFAULT": { service: "service_a8bnfmk", template: "template_r6sddff" } };
-
 function makeCsv(){
   let csv = 'CODE,PROJECT,AGE,GENDER,EMAIL,PHONE,LANG,LEFT_LVL,RIGHT_LVL\n';
   csv += `${participant.code},${participant.projectCode},${participant.age},${participant.gender},${participant.email},${participant.phone},${participant.motherTongue},${participant.leftLevel},${participant.rightLevel}\n\n`;
@@ -531,12 +554,13 @@ function makeCsv(){
   }
   return csv;
 }
+
 async function sendEmail(){
   const csv = makeCsv();
   const config = EMAIL_CONFIG[participant.projectCode] || EMAIL_CONFIG["DEFAULT"];
   try{
     if(!window.emailjs){ const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js'; await new Promise(res=>{s.onload=res;document.head.appendChild(s)}); }
-    emailjs.init($id('emailjs-user').content);
+    emailjs.init(EMAIL_USER_ID);
     await emailjs.send(config.service, config.template, { subject: participant.code, message: csv });
     $id('doneLog').innerText = 'Veriler başarıyla gönderildi.';
   }catch(e){ $id('doneLog').innerText = 'E-posta hatası: '+e; }
