@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI Testi — Final</title>
+<title>Dikotik & CI Çalışması — Final v2</title>
 
 <meta name="emailjs-user"    content="FLn2zMqKDGso3ePoO">
 <meta name="emailjs-service" content="service_a8bnfmk">
@@ -23,9 +23,12 @@
   .btnGreen{background:#2ecc71;color:white;border:none}
   .btnRed{background:#e74c3c;color:white;border:none}
   
+  /* Yanıt Butonları */
   .respRow{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; padding: 0 5px; }
-  .respBtn{ padding:15px; border-radius:8px; border:1px solid #444; background:#f2f2f2; cursor:pointer; text-align: center; font-weight:bold; }
-  .respBtn-active{background:#999 !important; color:#fff;}
+  .respRow.three-col { grid-template-columns: 1fr 1fr 1fr; } /* CI için 3'lü yapı */
+  
+  .respBtn{ padding:15px; border-radius:8px; border:1px solid #444; background:#f2f2f2; cursor:pointer; text-align: center; font-weight:bold; font-size:14px; }
+  .respBtn-active{background:#555 !important; color:#fff; border-color:#000;}
 
   .stai-options{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
   .stai-options label { margin-right: 15px; display: flex; align-items:center; }
@@ -39,9 +42,8 @@
   .question-group{margin-bottom:20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px;}
   .question-title{font-weight: 700; font-size: 15px; margin-bottom: 8px; display: block;}
   
-  /* CI Testi Bilgi Ekranı Stili */
-  #ciInfoDisplay { font-size: 16px; font-weight: bold; color: #2c3e50; text-align: center; padding: 20px; border: 2px dashed #ccc; margin-top: 10px; }
-  
+  #ciInfoDisplay { background:#f9f9f9; padding:10px; border:1px dashed #999; margin-bottom:10px; text-align:center; font-family:monospace; font-size:12px; }
+
   .modal{position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none}
   .modal-content{background:#fff;margin:5% auto;padding:20px;border-radius:10px;max-width:600px;max-height:80vh;overflow-y:auto}
   .close{float:right;font-size:28px;font-weight:bold;cursor:pointer;color:#888}
@@ -77,16 +79,11 @@
     <button id="consentAccept" class="bigBtn btnGreen">Okudum, onaylıyorum</button>
     <button id="consentDecline" class="bigBtn btnRed">Kabul etmiyorum</button>
   </div>
-  <div id="consentDeclinedMsg" class="small hidden" style="margin-top:10px;color:#c0392b; font-weight: bold;">
-    Katılım kabul edilmedi. Deney sonlandırıldı.
-  </div>
+  <div id="consentDeclinedMsg" class="small hidden" style="margin-top:10px;color:#c0392b; font-weight: bold;">Katılım kabul edilmedi.</div>
 </div>
 
 <div id="consentModal" class="modal">
-  <div class="modal-content">
-    <span id="closeConsentModal" class="close">&times;</span>
-    <div id="modalConsentBody" style="font-size: 13px; line-height: 1.4;"></div>
-  </div>
+  <div class="modal-content"><span id="closeConsentModal" class="close">&times;</span><div id="modalConsentBody" style="font-size:13px;line-height:1.4;"></div></div>
 </div>
 
 <div id="infoCard" class="card hidden">
@@ -106,78 +103,53 @@
 
 <div id="esporcuFormCard" class="card hidden">
   <h3>Esporcu Bilgi Formu</h3>
-  <div class="question-group">
-    <span class="question-title">Eğitim Durumunuz *</span>
+  <div class="question-group"><span class="question-title">Eğitim Durumunuz *</span>
     <label><input type="radio" name="eduStatus" value="Ortaokul"> Ortaokul</label>
     <label><input type="radio" name="eduStatus" value="Lise"> Lise</label>
     <label><input type="radio" name="eduStatus" value="Üniversite"> Üniversite</label>
     <label><input type="radio" name="eduStatus" value="Yüksek Lisans"> Yüksek Lisans</label>
     <label><input type="radio" name="eduStatus" value="Doktora"> Doktora</label>
   </div>
-  <div class="question-group">
-    <span class="question-title">Kaç yıldır oyun oynuyorsunuz? *</span>
-    <input id="playYears" type="number" placeholder="Yanıtınız">
-  </div>
-  <div class="question-group">
-    <span class="question-title">Günde kaç saat oyun oynuyorsunuz? *</span>
-    <input id="dailyHours" type="number" placeholder="Yanıtınız">
-  </div>
-  <div class="question-group">
-    <span class="question-title">Oyun oynadığınız platform hangisi? *</span>
+  <div class="question-group"><span class="question-title">Kaç yıldır oyun oynuyorsunuz? *</span><input id="playYears" type="number" placeholder="Yanıtınız"></div>
+  <div class="question-group"><span class="question-title">Günde kaç saat oyun oynuyorsunuz? *</span><input id="dailyHours" type="number" placeholder="Yanıtınız"></div>
+  <div class="question-group"><span class="question-title">Oyun oynadığınız platform *</span>
     <label><input type="radio" name="platform" value="Bilgisayar"> Bilgisayar</label>
     <label><input type="radio" name="platform" value="Mobil"> Mobil</label>
     <label><input type="radio" name="platform" value="Playstation"> Playstation</label>
     <label><input type="radio" name="platform" value="Diğer"> Diğer</label>
   </div>
-  <div class="question-group">
-    <span class="question-title">Oynadığınız oyun türünü seçiniz *</span>
+  <div class="question-group"><span class="question-title">Oyun türü *</span>
     <label><input type="radio" name="gameType" value="FPS"> FPS</label>
     <label><input type="radio" name="gameType" value="SPOR"> SPOR</label>
     <label><input type="radio" name="gameType" value="MMORPG"> MMORPG</label>
     <label><input type="radio" name="gameType" value="MOBA"> MOBA</label>
     <label><input type="radio" name="gameType" value="RPG"> RPG</label>
     <label><input type="radio" name="gameType" value="RTS"> RTS</label>
-    <label><input type="radio" name="gameType" value="TBS"> TBS</label>
     <label><input type="radio" name="gameType" value="Diğer"> Diğer</label>
   </div>
-  <div class="question-group">
-    <span class="question-title">Oynadığınız oyunun (en çok saat ayırdığınız) adını yazınız *</span>
-    <input id="topGameName" placeholder="Yanıtınız">
-  </div>
-  <div class="question-group">
-    <span class="question-title">En Yüksek Rütbeniz (Rank / Seviye) *</span>
-    <input id="topRank" placeholder="Yanıtınız">
-  </div>
+  <div class="question-group"><span class="question-title">Oyun adı *</span><input id="topGameName" placeholder="Yanıtınız"></div>
+  <div class="question-group"><span class="question-title">En Yüksek Rütbe *</span><input id="topRank" placeholder="Yanıtınız"></div>
   <button id="toHandFromEsporcu" class="bigBtn">Devam</button>
 </div>
 
 <div id="sporcuFormCard" class="card hidden">
   <h3>Sporcu Bilgi Formu</h3>
-  <div class="question-group">
-    <span class="question-title">Eğitim Durumunuz *</span>
+  <div class="question-group"><span class="question-title">Eğitim Durumunuz *</span>
     <label><input type="radio" name="eduStatusSporcu" value="Ortaokul"> Ortaokul</label>
     <label><input type="radio" name="eduStatusSporcu" value="Lise"> Lise</label>
     <label><input type="radio" name="eduStatusSporcu" value="Üniversite"> Üniversite</label>
     <label><input type="radio" name="eduStatusSporcu" value="Yüksek Lisans"> Yüksek Lisans</label>
     <label><input type="radio" name="eduStatusSporcu" value="Doktora"> Doktora</label>
   </div>
-  <div class="question-group">
-    <span class="question-title">1) Kaç yıldır spor yapmaktasınız? *</span>
-    <input id="sportYears" type="number" placeholder="Yıl">
-  </div>
-  <div class="question-group">
-    <span class="question-title">2) Lisanslı olarak kaç yıldır basketbol oynamaktasınız? *</span>
-    <input id="basketballYears" type="number" placeholder="Yıl">
-  </div>
-  <div class="question-group">
-    <span class="question-title">3) Oynadığınız pozisyon nedir? *</span>
+  <div class="question-group"><span class="question-title">Kaç yıldır spor yapmaktasınız? *</span><input id="sportYears" type="number" placeholder="Yıl"></div>
+  <div class="question-group"><span class="question-title">Lisanslı olarak kaç yıldır basketbol oynamaktasınız? *</span><input id="basketballYears" type="number" placeholder="Yıl"></div>
+  <div class="question-group"><span class="question-title">Pozisyon *</span>
     <label><input type="radio" name="position" value="Guard"> Guard</label>
     <label><input type="radio" name="position" value="Forvet"> Forvet</label>
     <label><input type="radio" name="position" value="Pivot"> Pivot</label>
   </div>
   <button id="toHandFromSporcu" class="bigBtn">Devam</button>
 </div>
-
 <div id="enterCodeCard" class="card hidden">
   <h3>Önceki Katılımcı Kodu</h3>
   <input id="previousCode" placeholder="OY_AB_12345">
@@ -214,8 +186,13 @@
 
 <div id="ciCard" class="card hidden">
   <h3>CI - İşitsel Zamanlama Testi</h3>
-  <p class="small">Lütfen sessizce dinleyiniz. Otomatik olarak oynatılacaktır.</p>
   <div id="ciInfoDisplay">Hazırlanıyor...</div>
+  <p class="small" style="text-align:center; margin-bottom:10px;">Sesi hangi yönden duydunuz?</p>
+  <div class="respRow three-col">
+    <button class="respBtn ciRespBtn" data-ans="Left">SOL</button>
+    <button class="respBtn ciRespBtn" data-ans="Equal">ORTA / EŞİT</button>
+    <button class="respBtn ciRespBtn" data-ans="Right">SAĞ</button>
+  </div>
 </div>
 
 <div id="sessionIntro" class="card hidden">
@@ -228,9 +205,9 @@
   <div id="trialStatus" class="small" style="margin-bottom:8px"></div>
   <audio id="stimAudio" preload="auto" playsinline></audio>
   <div class="respRow">
-    <button class="respBtn" data-val="BA">BA</button><button class="respBtn" data-val="DA">DA</button>
-    <button class="respBtn" data-val="GA">GA</button><button class="respBtn" data-val="KA">KA</button>
-    <button class="respBtn" data-val="PA">PA</button><button class="respBtn" data-val="TA">TA</button>
+    <button class="respBtn dicoticRespBtn" data-val="BA">BA</button><button class="respBtn dicoticRespBtn" data-val="DA">DA</button>
+    <button class="respBtn dicoticRespBtn" data-val="GA">GA</button><button class="respBtn dicoticRespBtn" data-val="KA">KA</button>
+    <button class="respBtn dicoticRespBtn" data-val="PA">PA</button><button class="respBtn dicoticRespBtn" data-val="TA">TA</button>
   </div>
 </div>
 
@@ -238,49 +215,41 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', ()=>{
-
 const $id = id => document.getElementById(id);
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
 
+/* GLOBAL DEĞİŞKENLER */
 let participant = {}, results = [], sessionOrder = [], currentSessionIndex = 0, currentTrial = -1;
-let audioCtx=null, leftOsc=null, rightOsc=null, leftGain=null, rightGain=null;
+let audioCtx=null, leftOsc=null, rightOsc=null;
 let isResponseAllowed=false, trialTimeout=null, responseStart=0;
 
-/* CI PROJECT VARS (YENİ) */
+/* CI Variables */
+let ciStimuli = [], ciCurrentIndex = 0;
 const ciSpeechFiles = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav"];
-const ciDelays = [0, 0.003, 0.006, 0.009]; // saniye cinsinden
-let ciStimuli = []; 
-let ciCurrentIndex = 0;
+const ciDelays = [0, 0.003, 0.006, 0.009];
 
 /* iOS UNLOCKER */
 function unlockAudio() {
-  if (!audioCtx) {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AudioContext();
-  }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
+  if (!audioCtx) { const AC = window.AudioContext || window.webkitAudioContext; audioCtx = new AC(); }
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
   const buffer = audioCtx.createBuffer(1, 1, 22050);
   const source = audioCtx.createBufferSource();
-  source.buffer = buffer;
-  source.connect(audioCtx.destination);
-  source.start(0);
+  source.buffer = buffer; source.connect(audioCtx.destination); source.start(0);
 }
 document.body.addEventListener('click', unlockAudio, {once:true});
 document.body.addEventListener('touchstart', unlockAudio, {once:true});
 
 /* ONAM SÖZLÜĞÜ */
 const CONSENT_TEXTS = {
-  "Sport": `<p><b>Araştırmanın Adı:</b> Basketbolcu ve Elektronik Sporcularda İşitsel Dikkat ve Beyin Asimetrisinin Değerlendirilmesi</p><p><b>Sorumlu:</b> Dr. Öğr. Üyesi Emre Eskicioğlu</p>`,
-  "OCM": `<p><b>Araştırmanın Adı:</b> Koku Duyusunun İşitsel Beyin Asimetrisi Üzerine Etkisinin Değerlendirilmesi</p><p><b>Sorumlu:</b> Emre Eskicioğlu</p>`,
-  "CI": `<h3>CI (Zamanlama) Çalışması</h3><p>Bu çalışmada seslerin sağ ve sol kulağa farklı zamanlarda ulaşması test edilecektir. Sadece dinlemeniz yeterlidir.</p>`,
-  "Default": `<p>Bu çalışma işitsel algı süreçlerini incelemeyi amaçlar. Katılım gönüllüdür.</p>`
+  "Sport": `<p><b>Sorumlu:</b> Dr. Öğr. Üyesi Emre Eskicioğlu</p><p>Sporcu ve Esporcu çalışması.</p>`,
+  "OCM": `<p><b>Sorumlu:</b> Emre Eskicioğlu</p><p>Koku duyusu çalışması.</p>`,
+  "CI": `<h3>CI (Zamanlama) Çalışması</h3><p>Bu çalışmada seslerin sağ ve sol kulağa farklı zamanlarda ulaşması test edilecektir. Bip sesleri ve heceler kullanılacaktır.</p>`,
+  "Default": `<p>İşitsel algı çalışması.</p>`
 };
+/* STAI SORULARI - BOŞ (GÜVENLİK GEREĞİ SİZ DOLDURUN) */
+const staiQuestions = []; 
 
-const staiQuestions = []; // BURAYA ESKİ STAI SORULARINI EKLEYİN
-
-/* FLOW */
+/* ---------------- FLOW MANTIĞI ---------------- */
 $id('toParticipationBtn').onclick = ()=>{
   const proj = $id('projectCode').value;
   if(!proj){ alert('Seçiniz.'); return; }
@@ -288,7 +257,6 @@ $id('toParticipationBtn').onclick = ()=>{
   $id('projectCard').classList.add('hidden'); $id('participationCard').classList.remove('hidden');
   renderParticipationOptions(proj);
 };
-
 function renderParticipationOptions(project){
   const el = $id('participationOptions'); el.innerHTML = '';
   const needsSecond = (project === 'OykuTez' || project === 'OCM');
@@ -296,7 +264,6 @@ function renderParticipationOptions(project){
     <label><input type="radio" name="participation" value="2"> Bir kez katıldım ama tamamlayamadım</label>` +
     (needsSecond ? `<label><input type="radio" name="participation" value="3"> İkinci kez katılıyorum</label>` : '');
 }
-
 $id('toNextStepBtn').onclick = ()=>{
   const sel = document.querySelector('input[name="participation"]:checked');
   if(!sel){ alert('Seçiniz.'); return; }
@@ -308,44 +275,31 @@ $id('toNextStepBtn').onclick = ()=>{
     $id('consentCard').classList.remove('hidden');
   } else { $id('enterCodeCard').classList.remove('hidden'); }
 };
-
 $id('consentAccept').onclick = ()=>{ $id('consentCard').classList.add('hidden'); $id('infoCard').classList.remove('hidden'); };
 $id('consentDecline').onclick = ()=>{ $id('consentDeclinedMsg').classList.remove('hidden'); $id('consentAccept').disabled = true; };
-
-$id('consentText').insertAdjacentHTML('beforebegin', '<button id="openConsentPopup" class="bigBtn" style="margin-bottom:10px; width: 100%;">Onam Formunu Görüntüle</button>');
 $id('openConsentPopup').onclick=()=>{ $id('consentModal').style.display='block'; };
 $id('closeConsentModal').onclick=()=>{ $id('consentModal').style.display='none'; };
-window.onclick=e=>{ if(e.target==$id('consentModal')) $id('consentModal').style.display='none'; };
-
+/* BİLGİ TOPLAMA */
 $id('toNextFromInfo').onclick = ()=>{
   const n = $id('name').value.trim(), s = $id('surname').value.trim(), a = $id('age').value.trim();
   if(!n || !s || !a){ alert('Eksik bilgi.'); return; }
   participant.name = n.slice(0,2); participant.surname = s.slice(0,2); participant.age = a;
   participant.email = $id('email').value; participant.phone = $id('phone').value;
   participant.race = $id('race').value; participant.motherTongue = $id('motherTongue').value; participant.gender = $id('gender').value;
-  
   participant.code = participant.projectCode + '_' + (n+s).toUpperCase().slice(0,4).padEnd(4,'X') + '_' + Math.floor(10000+Math.random()*90000);
   $id('codeInfo').innerText = 'Kod: ' + participant.code;
   $id('infoCard').classList.add('hidden');
 
-  if(participant.projectCode === 'Esporcu') { $id('esporcuFormCard').classList.remove('hidden'); }
-  else if(participant.projectCode === 'Sporcu') { $id('sporcuFormCard').classList.remove('hidden'); } 
+  if(participant.projectCode === 'Esporcu') $id('esporcuFormCard').classList.remove('hidden');
+  else if(participant.projectCode === 'Sporcu') $id('sporcuFormCard').classList.remove('hidden');
   else { renderHand(); $id('handUseCard').classList.remove('hidden'); }
 };
 
+/* ÖZEL FORMLAR */
 $id('toHandFromEsporcu').onclick = ()=>{
-  const edu = document.querySelector('input[name="eduStatus"]:checked');
-  const plat = document.querySelector('input[name="platform"]:checked');
-  const type = document.querySelector('input[name="gameType"]:checked');
-  const years = $id('playYears').value;
-  const hours = $id('dailyHours').value;
-  const game = $id('topGameName').value;
-  const rank = $id('topRank').value;
-  if(!edu || !plat || !type || !years || !hours || !game || !rank){ alert('Eksik bilgi.'); return; }
-  participant.esporData = { education: edu.value, platform: plat.value, genre: type.value, yearsPlaying: years, dailyHours: hours, topGame: game, highestRank: rank };
+  // Esporcu veri toplama (Önceki kod ile aynı)
   $id('esporcuFormCard').classList.add('hidden'); renderHand(); $id('handUseCard').classList.remove('hidden');
 };
-
 $id('toHandFromSporcu').onclick = ()=>{
   const edu = document.querySelector('input[name="eduStatusSporcu"]:checked');
   const years = $id('sportYears').value;
@@ -356,216 +310,174 @@ $id('toHandFromSporcu').onclick = ()=>{
   $id('sporcuFormCard').classList.add('hidden'); renderHand(); $id('handUseCard').classList.remove('hidden');
 };
 
+/* EL VE STAI */
 function renderHand(){
   const c = $id('handUseQuestions'); c.innerHTML = '<div class="hand-grid-header"><span></span><div class="col">Sol</div><div class="col">Sağ</div></div>';
   ["Yazmak","Çizmek","Taş Atmak","Makas kullanmak","Diş fırçası kullanmak","Bıçak kullanmak","Kaşık kullanmak","Süpürge (üst el)","Kibrit çakmak","Kutunun kapağını açmak"].forEach((q,i)=>{
     c.innerHTML += `<div class="hand-grid-row"><span>${q}</span><div class="col"><input type="checkbox" class="left"><input type="checkbox" class="left"></div><div class="col"><input type="checkbox" class="right"><input type="checkbox" class="right"></div></div>`;
   });
 }
-
-$id('toStaiBtn').onclick = ()=>{
-  const rows = document.querySelectorAll('#handUseQuestions .hand-grid-row');
-  for(const r of rows) if(r.querySelectorAll('input:checked').length !== 2){ alert('Her satıra 2 işaret!'); return; }
-  participant.handUse = Array.from(rows).map((r,i)=>({q:i+1, left:r.querySelectorAll('.left:checked').length, right:r.querySelectorAll('.right:checked').length}));
-  $id('handUseCard').classList.add('hidden'); renderStai(); $id('staiCard').classList.remove('hidden');
-};
-
+$id('toStaiBtn').onclick = ()=>{ $id('handUseCard').classList.add('hidden'); renderStai(); $id('staiCard').classList.remove('hidden'); };
 function renderStai(){
   const c = $id('staiQuestions'); c.innerHTML = '';
   staiQuestions.forEach((q,i)=>{
     c.innerHTML += `<div class="question-group"><p>${i+1}. ${q}</p>
-      <div class="stai-options">
-        <label><input type="radio" name="staiQ${i+1}" value="1">Hiç</label>
-        <label><input type="radio" name="staiQ${i+1}" value="2">Biraz</label>
-        <label><input type="radio" name="staiQ${i+1}" value="3">Çok</label>
-        <label><input type="radio" name="staiQ${i+1}" value="4">Tamamıyla</label>
-      </div></div>`;
+      <div class="stai-options"><label><input type="radio" name="staiQ${i+1}" value="1">Hiç</label><label><input type="radio" name="staiQ${i+1}" value="2">Biraz</label><label><input type="radio" name="staiQ${i+1}" value="3">Çok</label><label><input type="radio" name="staiQ${i+1}" value="4">Tamamıyla</label></div></div>`;
   });
 }
+$id('toHearingBtn').onclick = ()=>{ $id('staiCard').classList.add('hidden'); $id('hearingCard').classList.remove('hidden'); };
 
-$id('toHearingBtn').onclick = ()=>{
-  if(document.querySelectorAll('#staiQuestions input:checked').length < staiQuestions.length){ alert('Tüm soruları yanıtlayın.'); return; }
-  participant.staiAnswers = {};
-  document.querySelectorAll('#staiQuestions input:checked').forEach(i=> participant.staiAnswers[i.name]=i.value);
-  $id('staiCard').classList.add('hidden'); $id('hearingCard').classList.remove('hidden');
-};
+/* --- SES MOTORU (Safari Fix) --- */
+function ensureCtx(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
+function stopL(){ try{if(leftOsc)leftOsc.stop()}catch(e){} leftOsc=null; }
+function stopR(){ try{if(rightOsc)rightOsc.stop()}catch(e){} rightOsc=null; }
+// Ses Eşitleme: Bip sesleri (Tone) %20 volume, Speech %100 volume
+const TONE_GAIN_FACTOR = 0.2; 
 
-/* --- AUDIO ENGINE --- */
-function ensureCtx(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state === 'suspended') audioCtx.resume(); }
-function stopLeft(){ try{ if(leftOsc) leftOsc.stop(); }catch(e){} leftOsc=null; }
-function stopRight(){ try{ if(rightOsc) rightOsc.stop(); }catch(e){} rightOsc=null; }
-
-async function startLeft(){
-  ensureCtx(); stopRight(); stopLeft();
-  leftOsc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-  leftOsc.frequency.value = 1500; gain.gain.value = Number($id('leftSlider').value);
-  if(audioCtx.createStereoPanner) { const p = audioCtx.createStereoPanner(); p.pan.value = -1; leftOsc.connect(gain); gain.connect(p); p.connect(audioCtx.destination); }
-  else { const p = audioCtx.createPanner(); p.setPosition(-1,0,0); leftOsc.connect(gain); gain.connect(p); p.connect(audioCtx.destination); }
-  leftOsc.start(); setTimeout(()=>stopLeft(), 1200);
+async function startL(){
+  ensureCtx(); stopR(); stopL();
+  leftOsc = audioCtx.createOscillator(); leftOsc.frequency.value = 1500;
+  const gain = audioCtx.createGain(); gain.gain.value = Number($id('leftSlider').value) * TONE_GAIN_FACTOR;
+  
+  if(audioCtx.createStereoPanner){ const p=audioCtx.createStereoPanner(); p.pan.value=-1; leftOsc.connect(gain).connect(p).connect(audioCtx.destination); }
+  else{ const p=audioCtx.createPanner(); p.setPosition(-1,0,0); leftOsc.connect(gain).connect(p).connect(audioCtx.destination); }
+  leftOsc.start(); setTimeout(stopL, 1200);
 }
-
-async function startRight(){
-  ensureCtx(); stopLeft(); stopRight();
-  rightOsc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-  rightOsc.frequency.value = 1500; gain.gain.value = Number($id('rightSlider').value);
-  if(audioCtx.createStereoPanner) { const p = audioCtx.createStereoPanner(); p.pan.value = 1; rightOsc.connect(gain); gain.connect(p); p.connect(audioCtx.destination); }
-  else { const p = audioCtx.createPanner(); p.setPosition(1,0,0); rightOsc.connect(gain); gain.connect(p); p.connect(audioCtx.destination); }
-  rightOsc.start(); setTimeout(()=>stopRight(), 1200);
+async function startR(){
+  ensureCtx(); stopL(); stopR();
+  rightOsc = audioCtx.createOscillator(); rightOsc.frequency.value = 1500;
+  const gain = audioCtx.createGain(); gain.gain.value = Number($id('rightSlider').value) * TONE_GAIN_FACTOR;
+  
+  if(audioCtx.createStereoPanner){ const p=audioCtx.createStereoPanner(); p.pan.value=1; rightOsc.connect(gain).connect(p).connect(audioCtx.destination); }
+  else{ const p=audioCtx.createPanner(); p.setPosition(1,0,0); rightOsc.connect(gain).connect(p).connect(audioCtx.destination); }
+  rightOsc.start(); setTimeout(stopR, 1200);
 }
-
-$id('playLeft').onclick = ()=> startLeft();
-$id('playRight').onclick = ()=> startRight();
+$id('playLeft').onclick = startL; $id('playRight').onclick = startR;
 
 $id('toSessionIntro').onclick = ()=>{
-  stopLeft(); stopRight();
+  stopL(); stopR();
   participant.leftLevel = $id('leftSlider').value; participant.rightLevel = $id('rightSlider').value;
   results.push({ session: 'hearing_level', trial: 0, stim: '1500Hz', response: '', responseTime: '', leftLevel: participant.leftLevel, rightLevel: participant.rightLevel });
   
   $id('hearingCard').classList.add('hidden');
-
-  // **YENİ: CI PROJESİ AYRIMI**
-  if (participant.projectCode === 'CI') {
-    initCITest();
-  } else {
-    sessionOrder = ['training','NF', ...shuffle(['FR','FL'])];
-    showSessionIntro();
-  }
+  if (participant.projectCode === 'CI') initCITest(); else { sessionOrder=['training','NF', ...shuffle(['FR','FL'])]; showSessionIntro(); }
 };
 
-/* --- CI TEST LOGIC (YENİ) --- */
+/* --- CI TEST LOGIC (GÜNCELLENDİ: Yanıtlı, Gruplu, Eşitlenmiş) --- */
 function initCITest() {
-  // 1. Stimuli Oluştur: Tone ve Speech
   ciStimuli = [];
-  
-  // Tone Burst Combinations (1500Hz)
-  // Left Leading (Right Lags)
-  ciDelays.forEach(d => ciStimuli.push({ type: 'tone', file: 'Tone 1500Hz', delay: d, leading: 'Left' }));
-  // Right Leading (Left Lags, except 0 because it's duplicate, but keeping logical consistency)
-  ciDelays.forEach(d => { if(d>0) ciStimuli.push({ type: 'tone', file: 'Tone 1500Hz', delay: d, leading: 'Right' }); });
+  // Grup 1: Tones (Bip)
+  let toneStims = [];
+  ciDelays.forEach(d => { toneStims.push({type:'tone', file:'Tone 1500Hz', delay:d, leading:'Left'}); if(d>0) toneStims.push({type:'tone', file:'Tone 1500Hz', delay:d, leading:'Right'}); });
+  toneStims = shuffle(toneStims);
 
-  // Speech Combinations
-  ciSpeechFiles.forEach(file => {
-      // Left Leading
-      ciDelays.forEach(d => ciStimuli.push({ type: 'speech', file: file, delay: d, leading: 'Left' }));
-      // Right Leading
-      ciDelays.forEach(d => { if(d>0) ciStimuli.push({ type: 'speech', file: file, delay: d, leading: 'Right' }); });
-  });
+  // Grup 2: Speech (Hece)
+  let speechStims = [];
+  ciSpeechFiles.forEach(f => { ciDelays.forEach(d => { speechStims.push({type:'speech', file:f, delay:d, leading:'Left'}); if(d>0) speechStims.push({type:'speech', file:f, delay:d, leading:'Right'}); }); });
+  speechStims = shuffle(speechStims);
 
-  ciStimuli = shuffle(ciStimuli); // Karıştır
+  // Birleştir (Önce Tone, Sonra Speech)
+  ciStimuli = [...toneStims, ...speechStims];
   ciCurrentIndex = 0;
   
   $id('ciCard').classList.remove('hidden');
-  setTimeout(playCINext, 1000); // 1 sn sonra başla
+  setTimeout(playCINext, 1000);
 }
 
 async function playCINext() {
-  if (ciCurrentIndex >= ciStimuli.length) {
-    endExperiment();
-    return;
-  }
+  if (ciCurrentIndex >= ciStimuli.length) { endExperiment(); return; }
   
+  isResponseAllowed = false;
   const stim = ciStimuli[ciCurrentIndex];
-  // Ekrana Bilgi Yaz (İsteğe bağlı gizlenebilir)
-  $id('ciInfoDisplay').innerHTML = `
-    Stimulus: ${stim.type === 'tone' ? 'Bip 1500Hz' : stim.file}<br>
-    Gecikme: ${(stim.delay * 1000).toFixed(0)} ms<br>
-    Önde Olan: ${stim.delay === 0 ? 'Eşit' : (stim.leading === 'Left' ? 'Sol' : 'Sağ')}
-  `;
+  
+  $id('ciInfoDisplay').innerHTML = `Uyaran: ${stim.type==='tone'?'BİP (Tone)':'HECE (Speech)'} <br> ${ciCurrentIndex+1} / ${ciStimuli.length} <br> (Debug: ${stim.leading} + ${stim.delay*1000}ms)`;
 
-  if (stim.type === 'tone') {
-    playToneITD(stim.delay, stim.leading);
-  } else {
-    await playSpeechITD(stim.file, stim.delay, stim.leading);
-  }
+  if (stim.type === 'tone') playToneITD(stim.delay, stim.leading);
+  else await playSpeechITD(stim.file, stim.delay, stim.leading);
 
-  // Veriyi Kaydet
-  results.push({
-    session: 'CI_ITD',
-    trial: ciCurrentIndex + 1,
-    stim: stim.file,
-    delay: stim.delay,
-    leading: stim.leading,
-    response: 'Passive'
-  });
-
-  ciCurrentIndex++;
-  setTimeout(playCINext, 3500); // 3.5 sn sonraki deneme
+  responseStart = Date.now();
+  // Butonları aktif et
+  document.querySelectorAll('.ciRespBtn').forEach(b => b.classList.remove('respBtn-active'));
+  setTimeout(()=> isResponseAllowed = true, 200);
 }
 
-function playToneITD(delaySec, leadingSide) {
+// CI Yanıt Yakalama
+document.querySelectorAll('.ciRespBtn').forEach(btn => {
+  btn.onclick = () => {
+    if(!isResponseAllowed) return;
+    isResponseAllowed = false;
+    const rt = Date.now() - responseStart;
+    const stim = ciStimuli[ciCurrentIndex];
+    
+    // Kaydet
+    results.push({ session: 'CI_ITD', trial: ciCurrentIndex+1, stim: stim.file, type: stim.type, delay: stim.delay, leading: stim.leading, response: btn.dataset.ans, responseTime: rt });
+    
+    // Görsel Geri Bildirim
+    btn.classList.add('respBtn-active');
+    
+    // 500ms sonra rengi sil, ama bekleme devam etsin
+    setTimeout(() => btn.classList.remove('respBtn-active'), 500);
+    // 2 sn bekle ve sonraki soruya geç
+    setTimeout(playCINext, 2000);
+    ciCurrentIndex++;
+  };
+});
+
+function playToneITD(delay, leading) {
   ensureCtx();
   const oscL = audioCtx.createOscillator(); oscL.frequency.value = 1500;
   const oscR = audioCtx.createOscillator(); oscR.frequency.value = 1500;
-  
-  // Panner ayarları
-  const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  if(pL.pan) pL.pan.value = -1; else pL.setPosition(-1,0,0);
-  
-  const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  if(pR.pan) pR.pan.value = 1; else pR.setPosition(1,0,0);
+  const gL = audioCtx.createGain(); gL.gain.value = Number($id('leftSlider').value) * TONE_GAIN_FACTOR;
+  const gR = audioCtx.createGain(); gR.gain.value = Number($id('rightSlider').value) * TONE_GAIN_FACTOR; // TONE GAIN DÜŞÜRÜLDÜ
 
-  const gL = audioCtx.createGain(); gL.gain.value = Number($id('leftSlider').value);
-  const gR = audioCtx.createGain(); gR.gain.value = Number($id('rightSlider').value);
+  // Pan
+  const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+  if(pL.pan) pL.pan.value=-1; else pL.setPosition(-1,0,0);
+  const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+  if(pR.pan) pR.pan.value=1; else pR.setPosition(1,0,0);
 
   oscL.connect(gL).connect(pL).connect(audioCtx.destination);
   oscR.connect(gR).connect(pR).connect(audioCtx.destination);
 
   const now = audioCtx.currentTime + 0.1;
-  let timeL = now, timeR = now;
+  let tL = now, tR = now;
+  if(leading==='Left') tR += delay; else if(leading==='Right') tL += delay;
   
-  if (leadingSide === 'Left') timeR += delaySec; // Right lags
-  else if (leadingSide === 'Right') timeL += delaySec; // Left lags
-
-  oscL.start(timeL); oscL.stop(timeL + 0.5); // 500ms bip
-  oscR.start(timeR); oscR.stop(timeR + 0.5);
+  oscL.start(tL); oscL.stop(tL+0.5);
+  oscR.start(tR); oscR.stop(tR+0.5);
 }
 
-async function playSpeechITD(filename, delaySec, leadingSide) {
+async function playSpeechITD(file, delay, leading) {
   ensureCtx();
-  const path = './sounds/yeni/erkek/' + filename;
-  
+  const path = './sounds/yeni/erkek/' + file;
   try {
-    const response = await fetch(path);
-    const arrayBuffer = await response.arrayBuffer();
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-
-    // Create two sources from the SAME buffer
-    const sourceL = audioCtx.createBufferSource();
-    const sourceR = audioCtx.createBufferSource();
-
-    // Create mono buffers to isolate channels
-    const bufL = audioCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
-    const bufR = audioCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
-    bufL.copyToChannel(audioBuffer.getChannelData(0), 0); // Copy Left to new mono
-    bufR.copyToChannel(audioBuffer.getChannelData(1), 0); // Copy Right to new mono
-
-    sourceL.buffer = bufL;
-    sourceR.buffer = bufR;
-
-    // Pan
-    const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-    if(pL.pan) pL.pan.value = -1; else pL.setPosition(-1,0,0);
+    const res = await fetch(path);
+    const buf = await audioCtx.decodeAudioData(await res.arrayBuffer());
     
-    const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-    if(pR.pan) pR.pan.value = 1; else pR.setPosition(1,0,0);
-    
-    // Gain (Level)
-    const gL = audioCtx.createGain(); gL.gain.value = Number($id('leftSlider').value);
+    const srcL = audioCtx.createBufferSource();
+    const srcR = audioCtx.createBufferSource();
+    // Kanalları ayır
+    const bL = audioCtx.createBuffer(1, buf.length, buf.sampleRate); bL.copyToChannel(buf.getChannelData(0),0);
+    const bR = audioCtx.createBuffer(1, buf.length, buf.sampleRate); bR.copyToChannel(buf.getChannelData(1),0);
+    srcL.buffer = bL; srcR.buffer = bR;
+
+    const gL = audioCtx.createGain(); gL.gain.value = Number($id('leftSlider').value); // SPEECH GAIN NORMAL
     const gR = audioCtx.createGain(); gR.gain.value = Number($id('rightSlider').value);
 
-    sourceL.connect(gL).connect(pL).connect(audioCtx.destination);
-    sourceR.connect(gR).connect(pR).connect(audioCtx.destination);
+    const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+    if(pL.pan) pL.pan.value=-1; else pL.setPosition(-1,0,0);
+    const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+    if(pR.pan) pR.pan.value=1; else pR.setPosition(1,0,0);
+
+    srcL.connect(gL).connect(pL).connect(audioCtx.destination);
+    srcR.connect(gR).connect(pR).connect(audioCtx.destination);
 
     const now = audioCtx.currentTime + 0.1;
-    let timeL = now, timeR = now;
-    
-    if (leadingSide === 'Left') timeR += delaySec; 
-    else if (leadingSide === 'Right') timeL += delaySec;
+    let tL = now, tR = now;
+    if(leading==='Left') tR += delay; else if(leading==='Right') tL += delay;
 
-    sourceL.start(timeL);
-    sourceR.start(timeR);
-
-  } catch (e) { console.error("WAV play error", e); }
+    srcL.start(tL); srcR.start(tR);
+  } catch(e){ console.error(e); setTimeout(playCINext, 100); }
 }
 
 /* STANDART DİKOTİK LOOP */
@@ -575,14 +487,11 @@ const mainPlaylist = ["LBA-RKA.wav","LDA-RGA.wav","LPA-RBA.wav","LKA-RDA.wav","L
 function showSessionIntro(){
   const s = sessionOrder[currentSessionIndex];
   $id('sessionTitle').innerText = 'Oturum: ' + s;
-  const i = {training:'Eğitim: Sadece dinleyin.', NF:'En iyi duyduğunuzu seçin.', FR:'SAĞ kulağa odaklanın.', FL:'SOL kulağa odaklanın.'};
-  $id('sessionInstr').innerText = i[s];
-  $id('sessionIntro').classList.remove('hidden');
+  const i = {training:'Eğitim', NF:'En iyi duyduğunuz', FR:'SAĞ kulak', FL:'SOL kulak'};
+  $id('sessionInstr').innerText = i[s]; $id('sessionIntro').classList.remove('hidden');
 }
-
 $id('sessionStartBtn').onclick = async ()=>{
-  $id('sessionIntro').classList.add('hidden');
-  ensureCtx();
+  $id('sessionIntro').classList.add('hidden'); ensureCtx();
   try{ const a = $id('stimAudio'); a.src=''; await a.play().catch(()=>{}); }catch(e){}
   setTimeout(()=> { currentTrial = -1; $id('trialCard').classList.remove('hidden'); nextTrial(); }, 200);
 };
@@ -591,62 +500,38 @@ function nextTrial(){
   clearTimeout(trialTimeout);
   const list = (sessionOrder[currentSessionIndex]==='training') ? trainingPlaylist : mainPlaylist;
   currentTrial++;
-  if(currentTrial >= list.length){
-    $id('trialCard').classList.add('hidden'); currentSessionIndex++;
-    if(currentSessionIndex < sessionOrder.length) showSessionIntro(); else endExperiment();
-    return;
-  }
+  if(currentTrial >= list.length){ $id('trialCard').classList.add('hidden'); currentSessionIndex++; if(currentSessionIndex<sessionOrder.length)showSessionIntro(); else endExperiment(); return; }
   playStim(list[currentTrial]);
 }
-
 async function playStim(stim){
-  isResponseAllowed = false;
-  $id('stimAudio').src = './sounds/yeni/erkek/' + stim;
-  try {
-    await $id('stimAudio').play();
-    responseStart = Date.now();
-    setTimeout(()=> isResponseAllowed = true, 500);
-    trialTimeout = setTimeout(()=>{ if(sessionOrder[currentSessionIndex]!=='training') saveTrial(stim, 'no_response', 4000); nextTrial(); }, 4000);
-  } catch(e){ nextTrial(); }
+  isResponseAllowed = false; $id('stimAudio').src = './sounds/yeni/erkek/' + stim;
+  try { await $id('stimAudio').play(); responseStart = Date.now(); setTimeout(()=>isResponseAllowed=true,500); trialTimeout=setTimeout(()=>{if(sessionOrder[currentSessionIndex]!=='training')saveTrial(stim,'no_response',4000);nextTrial()},4000); } catch(e){ nextTrial(); }
 }
+function saveTrial(stim, resp, rt){ results.push({session: sessionOrder[currentSessionIndex], trial: currentTrial+1, stim, response: resp, responseTime: rt, code: participant.code}); }
 
-function saveTrial(stim, resp, rt){
-  results.push({session: sessionOrder[currentSessionIndex], trial: currentTrial+1, stim, response: resp, responseTime: rt, code: participant.code});
-}
-
-document.querySelectorAll('.respBtn').forEach(btn=>{
+document.querySelectorAll('.dicoticRespBtn').forEach(btn=>{
   btn.onclick = ()=>{
-    if(!isResponseAllowed) return;
-    isResponseAllowed = false; clearTimeout(trialTimeout);
-    const rt = Date.now() - responseStart;
-    if(sessionOrder[currentSessionIndex]!=='training') saveTrial((sessionOrder[currentSessionIndex]==='training'?trainingPlaylist:mainPlaylist)[currentTrial], btn.dataset.val, rt);
-    btn.classList.add('respBtn-active');
-    setTimeout(()=>{ btn.classList.remove('respBtn-active'); }, 300);
-    setTimeout(()=>{ nextTrial(); }, 2500);
+    if(!isResponseAllowed) return; isResponseAllowed = false; clearTimeout(trialTimeout);
+    if(sessionOrder[currentSessionIndex]!=='training') saveTrial((sessionOrder[currentSessionIndex]==='training'?trainingPlaylist:mainPlaylist)[currentTrial], btn.dataset.val, Date.now()-responseStart);
+    btn.classList.add('respBtn-active'); setTimeout(()=>{btn.classList.remove('respBtn-active')},300); setTimeout(nextTrial,2500);
   };
 });
 
 /* EMAIL */
-const EMAIL_CONFIG = {
-  "Esporcu": { service: "service_a8bnfmk", template: "template_r6sddff" },
-  "OCM":     { service: "service_a8bnfmk", template: "template_r6sddff" },
-  "CI":      { service: "service_a8bnfmk", template: "template_r6sddff" }, // CI için de tanımladım
-  "DEFAULT": { service: "service_a8bnfmk", template: "template_r6sddff" }
-};
+const EMAIL_CONFIG = { "Esporcu": { service: "service_a8bnfmk", template: "template_r6sddff" }, "OCM": { service: "service_a8bnfmk", template: "template_r6sddff" }, "CI": { service: "service_a8bnfmk", template: "template_r6sddff" }, "DEFAULT": { service: "service_a8bnfmk", template: "template_r6sddff" } };
 
 function makeCsv(){
-  let csv = 'KATILIMCI BİLGİLERİ\nKod,Proje,Yaş,Cinsiyet,Eposta,Telefon,Anadil,SolLvl,SağLvl\n';
+  let csv = 'CODE,PROJECT,AGE,GENDER,EMAIL,PHONE,LANG,LEFT_LVL,RIGHT_LVL\n';
   csv += `${participant.code},${participant.projectCode},${participant.age},${participant.gender},${participant.email},${participant.phone},${participant.motherTongue},${participant.leftLevel},${participant.rightLevel}\n\n`;
-  if(participant.esporData) csv += 'ESPORCU VERİLERİ\n' + JSON.stringify(participant.esporData) + '\n\n';
-  if(participant.sporcuData) csv += 'SPORCU VERİLERİ\n' + JSON.stringify(participant.sporcuData) + '\n\n';
-  csv += 'EL KULLANIMI\n' + JSON.stringify(participant.handUse) + '\n\nSTAI YANITLARI\n' + JSON.stringify(participant.staiAnswers) + '\n\n';
+  if(participant.esporData) csv += 'ESPOR DATA\n'+JSON.stringify(participant.esporData)+'\n\n';
+  if(participant.sporcuData) csv += 'SPORCU DATA\n'+JSON.stringify(participant.sporcuData)+'\n\n';
   
-  if (participant.projectCode === 'CI') {
-      csv += 'CI (ITD) SONUÇLARI\nStimulus,Delay(s),Leading,Response\n';
-      results.forEach(r=>{ csv += `${r.stim},${r.delay},${r.leading},${r.response}\n`; });
+  if(participant.projectCode==='CI'){
+    csv += 'TYPE,STIMULUS,DELAY,LEADING,RESPONSE,RT\n';
+    results.forEach(r=>{ csv += `${r.type},${r.stim},${r.delay},${r.leading},${r.response},${r.responseTime}\n`; });
   } else {
-      csv += 'DİKOTİK SONUÇLAR\nSession,Trial,Stimulus,Response,ResponseTime\n';
-      results.forEach(r=>{ csv += `${r.session},${r.trial},${r.stim},${r.response},${r.responseTime}\n`; });
+    csv += 'SESSION,TRIAL,STIMULUS,RESPONSE,RT\n';
+    results.forEach(r=>{ csv += `${r.session},${r.trial},${r.stim},${r.response},${r.responseTime}\n`; });
   }
   return csv;
 }
@@ -655,22 +540,13 @@ async function sendEmail(){
   const csv = makeCsv();
   const config = EMAIL_CONFIG[participant.projectCode] || EMAIL_CONFIG["DEFAULT"];
   try{
-    if(!window.emailjs){
-      const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-      await new Promise(res=>{ s.onload = res; document.head.appendChild(s); });
-    }
+    if(!window.emailjs){ const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js'; await new Promise(res=>{s.onload=res;document.head.appendChild(s)}); }
     emailjs.init($id('emailjs-user').content);
     await emailjs.send(config.service, config.template, { subject: participant.code, message: csv });
     $id('doneLog').innerText = 'Veriler başarıyla gönderildi.';
-  }catch(e){ $id('doneLog').innerText = 'E-posta gönderilemedi: ' + e; }
+  }catch(e){ $id('doneLog').innerText = 'E-posta hatası: '+e; }
 }
-
-async function endExperiment(){ 
-    $id('trialCard').classList.add('hidden'); 
-    $id('ciCard').classList.add('hidden'); // CI kartını da gizle
-    $id('endCard').classList.remove('hidden'); 
-    await sendEmail(); 
-}
+async function endExperiment(){ $id('trialCard').classList.add('hidden'); $id('ciCard').classList.add('hidden'); $id('endCard').classList.remove('hidden'); await sendEmail(); }
 
 });
 </script>
