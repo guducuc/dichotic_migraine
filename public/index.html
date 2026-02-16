@@ -3,44 +3,41 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI - Safari Fix v3</title>
+<title>Dikotik & CI Testi — Final Fix</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <style>
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f4f4f4; color:#333; padding-bottom: 150px;} /* Log için yer */
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f4f4f4; color:#333; padding-bottom: 150px;} 
   h1{font-size:1.4rem; text-align:center; margin-bottom:15px;}
   .card{background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:20px; margin-bottom:15px;}
   .hidden{display:none !important;}
   
   input, select { width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:8px; font-size:16px; box-sizing:border-box; }
   
-  .bigBtn { width:100%; padding:15px; border:none; border-radius:8px; background:#007AFF; color:white; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; }
+  .bigBtn { width:100%; padding:15px; border:none; border-radius:8px; background:#007AFF; color:white; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; -webkit-appearance: none; }
   .bigBtn:active { background:#0056b3; transform:scale(0.98); }
-  .btnRed { background:#FF3B30; } .btnGreen { background:#34C759; }
-
+  .btnGreen { background:#34C759; }
+  
   /* CI Butonları */
   .respRow { display:flex; gap:10px; margin-top:15px; }
-  .respBtn { flex:1; padding:15px; background:#E5E5EA; border-radius:8px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; }
-  .respBtn.active { background:#007AFF; color:white; }
-
-  /* Debug Konsolu (En altta sabit) */
-  #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:120px; background:#000; color:#0f0; font-family:monospace; font-size:12px; padding:10px; overflow-y:scroll; z-index:9999; border-top:2px solid #333; }
-  .log-line { border-bottom:1px solid #333; padding:2px 0; }
-  .log-err { color:#ff3b30; font-weight:bold; }
+  .respBtn { flex:1; padding:15px; background:#E5E5EA; border-radius:8px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; user-select: none; }
   
-  #loadingOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:2000; display:flex; justify-content:center; align-items:center; flex-direction:column; }
+  /* Debug Konsolu */
+  #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:100px; background:#000; color:#0f0; font-family:monospace; font-size:11px; padding:10px; overflow-y:scroll; z-index:9999; border-top:2px solid #333; display:block; }
+  
+  #loadingOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:2000; display:flex; justify-content:center; align-items:center; flex-direction:column; }
 </style>
 </head>
 <body>
 
 <h1>Dikotik & CI Çalışması</h1>
 
-<div id="loadingOverlay" class="hidden">
-  <div style="font-size:24px; font-weight:bold; margin-bottom:10px;">Sesler Yükleniyor...</div>
-  <div id="loadingText">Lütfen bekleyiniz (%0)</div>
-</div>
+<div id="debugConsole">Sistem Hazır...</div>
 
-<div id="debugConsole">
-  <div class="log-line">Sistem Başlatıldı. Safari Modu Aktif.</div>
+<div id="loadingOverlay" class="hidden">
+  <div style="font-size:20px; font-weight:bold; margin-bottom:10px;">Sesler Yükleniyor</div>
+  <div id="loadingText">%0</div>
 </div>
 
 <div id="card_project" class="card">
@@ -53,22 +50,22 @@
     <option value="OCM">OCM</option>
     <option value="OykuTez">Öykü Tez</option>
   </select>
-  <button class="bigBtn" onclick="nextStep('card_participation')">Devam</button>
+  <button class="bigBtn" onclick="window.nextStep('card_participation')">Devam</button>
 </div>
 
 <div id="card_participation" class="card hidden">
   <h3>Katılım Durumu</h3>
   <label style="display:block; margin:10px 0;"><input type="radio" name="partType" value="1" checked> İlk kez katılıyorum</label>
   <label style="display:block; margin:10px 0;"><input type="radio" name="partType" value="2"> Daha önce katıldım</label>
-  <button class="bigBtn" onclick="handleParticipation()">Devam</button>
+  <button class="bigBtn" onclick="window.nextStep('card_consent')">Devam</button>
 </div>
 
 <div id="card_consent" class="card hidden">
   <h3>Onam Formu</h3>
-  <div style="height:150px; overflow-y:scroll; border:1px solid #ddd; padding:10px; margin-bottom:10px; font-size:13px;">
-    Bu çalışma bilimsel amaçlarla yapılmaktadır. Katılım tamamen gönüllüdür. Ses kayıtları veya kişisel veriler anonim olarak saklanacaktır.
+  <div style="height:100px; overflow-y:scroll; border:1px solid #ddd; padding:10px; font-size:13px; margin-bottom:10px;">
+    Bu çalışma bilimsel amaçlıdır. Verileriniz anonim kalacaktır.
   </div>
-  <button class="bigBtn btnGreen" onclick="nextStep('card_info')">Kabul Ediyorum</button>
+  <button class="bigBtn btnGreen" onclick="window.nextStep('card_info')">Kabul Ediyorum</button>
 </div>
 
 <div id="card_info" class="card hidden">
@@ -77,216 +74,185 @@
   <input id="inp_surname" placeholder="Soyad (İlk 2 harf)">
   <input id="inp_age" type="number" placeholder="Yaş">
   <input id="inp_email" type="email" placeholder="E-posta">
-  <button class="bigBtn" onclick="saveInfoAndProceed()">Devam</button>
-</div>
-
-<div id="card_extra" class="card hidden">
-  <h3>Ek Sorular</h3>
-  <p>Lütfen eğitim durumunuzu seçiniz:</p>
-  <select id="inp_edu"><option>Lise</option><option>Üniversite</option><option>Yüksek Lisans</option></select>
-  <button class="bigBtn" onclick="startHearingCheck()">Devam</button>
+  <button class="bigBtn" onclick="window.saveInfo()">Devam</button>
 </div>
 
 <div id="card_hearing" class="card hidden">
   <h3>Ses Kontrolü</h3>
-  <p style="color:red; font-size:13px;">⚠️ iPhone kullanıcıları: Yandaki "Sessiz" tuşunu kapatın.</p>
+  <p style="color:red; font-size:13px; font-weight:bold;">⚠️ iPhone: "Sessiz" tuşunu kapatın!</p>
   
   <div style="background:#eee; padding:10px; border-radius:8px; margin-bottom:10px;">
-    <label>Sol Kulak Seviyesi</label>
-    <input type="range" id="vol_L" min="0" max="1" step="0.1" value="0.5">
-    <button class="bigBtn" style="margin-top:5px; background:#5ac8fa;" onclick="playTestTone(-1)">Sol Test (Bip)</button>
+    <label>Sol Ses</label> <input type="range" id="vol_L" min="0" max="1" step="0.1" value="0.5">
+    <button class="bigBtn" style="margin-top:5px; background:#5856d6;" onclick="window.playTestTone(-1)">Sol Test 🔊</button>
   </div>
 
   <div style="background:#eee; padding:10px; border-radius:8px;">
-    <label>Sağ Kulak Seviyesi</label>
-    <input type="range" id="vol_R" min="0" max="1" step="0.1" value="0.5">
-    <button class="bigBtn" style="margin-top:5px; background:#5ac8fa;" onclick="playTestTone(1)">Sağ Test (Bip)</button>
+    <label>Sağ Ses</label> <input type="range" id="vol_R" min="0" max="1" step="0.1" value="0.5">
+    <button class="bigBtn" style="margin-top:5px; background:#5856d6;" onclick="window.playTestTone(1)">Sağ Test 🔊</button>
   </div>
 
-  <button class="bigBtn" onclick="finishHearingAndStart()">Testi Başlat</button>
+  <button class="bigBtn" style="margin-top:20px; background:#ff9500;" onclick="window.prepareAndStart()">TESTİ BAŞLAT</button>
 </div>
 
 <div id="card_ci" class="card hidden">
   <h3>Dinleme Testi</h3>
-  <div id="ci_status" style="text-align:center; padding:15px; background:#fffbe6; border:1px solid #ffe58f; margin-bottom:15px;">Hazır</div>
-  
-  <p style="text-align:center;">Sesi nerede duydunuz?</p>
+  <div id="ci_info" style="text-align:center; padding:15px; background:#fffbe6; margin-bottom:15px; font-weight:bold;">Hazırlanıyor...</div>
   <div class="respRow">
-    <div class="respBtn" onclick="handleCIResponse('Left', this)">SOL</div>
-    <div class="respBtn" onclick="handleCIResponse('Equal', this)">ORTA</div>
-    <div class="respBtn" onclick="handleCIResponse('Right', this)">SAĞ</div>
+    <div class="respBtn" onclick="window.handleResponse('Left', this)">SOL</div>
+    <div class="respBtn" onclick="window.handleResponse('Equal', this)">ORTA</div>
+    <div class="respBtn" onclick="window.handleResponse('Right', this)">SAĞ</div>
   </div>
 </div>
 
 <div id="card_end" class="card hidden">
-  <h3>Tamamlandı!</h3>
-  <p id="end_msg">Veriler gönderiliyor...</p>
+  <h3>Bitti!</h3>
+  <p id="end_msg">Gönderiliyor...</p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
-// --- LOGLAMA SİSTEMİ ---
-function log(msg, isError=false) {
-  const d = document.getElementById('debugConsole');
-  const line = document.createElement('div');
-  line.className = 'log-line' + (isError ? ' log-err' : '');
-  line.innerText = '>' + msg;
-  d.appendChild(line);
-  d.scrollTop = d.scrollHeight;
-  console.log(msg);
-}
-window.onerror = function(msg, url, line) { log("JS HATASI: " + msg + " (Satır: " + line + ")", true); };
-
-// --- GLOBAL DEĞİŞKENLER ---
-const DATA = {
-  project: '', name: '', surname: '', age: '', email: '', 
-  leftVol: 0.5, rightVol: 0.5,
-  results: []
-};
-let audioCtx = null;
-let audioBuffers = {}; // Ses dosyaları buraya yüklenecek
-
-// SES DOSYALARI LİSTESİ
+// --- GLOBAL DEĞİŞKENLER VE AYARLAR ---
 const FILE_LIST = ["LBA-RBA.wav", "LDA-RDA.wav", "LGA-RGA.wav", "LKA-RKA.wav", "LPA-RPA.wav", "LTA-RTA.wav"];
 const FILE_PATH = "./sounds/yeni/erkek/"; 
+const EMAIL_USER = "FLn2zMqKDGso3ePoO";
 
-// --- NAVIGASYON ---
-function showCard(id) {
-  document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+var DATA = { project:'', results:[] };
+var audioCtx = null;
+var audioBuffers = {};
+var ciQueue = [];
+var ciIndex = 0;
+var allowClick = false;
+
+// --- LOG FONKSİYONU ---
+window.log = function(msg) {
+  var d = document.getElementById('debugConsole');
+  d.innerHTML = "> " + msg + "<br>" + d.innerHTML;
+  console.log(msg);
+}
+
+window.onerror = function(msg, url, line) {
+  window.log("HATA: " + msg + " (Satır:" + line + ")");
+  alert("HATA: " + msg);
+};
+
+// --- SAYFA GEÇİŞLERİ ---
+window.showCard = function(id) {
+  document.querySelectorAll('.card').forEach(function(c){ c.classList.add('hidden'); });
   document.getElementById(id).classList.remove('hidden');
-  log("Ekran değişti: " + id);
+  window.unlockAudio(); // Her geçişte ses kilidini açmayı dene
 }
 
-function nextStep(targetId) {
-  // Proje seçimi kontrolü
-  if(targetId === 'card_participation') {
-    DATA.project = document.getElementById('projectCode').value;
-    if(!DATA.project) { alert("Proje seçiniz!"); return; }
+window.nextStep = function(target) {
+  if(target === 'card_participation') {
+    var p = document.getElementById('projectCode').value;
+    if(!p) { alert("Proje seçin!"); return; }
+    DATA.project = p;
   }
-  showCard(targetId);
+  window.showCard(target);
 }
 
-function handleParticipation() {
-  // Basit geçiş
-  nextStep('card_consent');
-}
-
-function saveInfoAndProceed() {
-  const n = document.getElementById('inp_name').value;
-  const s = document.getElementById('inp_surname').value;
-  const a = document.getElementById('inp_age').value;
-  const e = document.getElementById('inp_email').value;
-
-  if(!n || !s || !a) { alert("Ad, Soyad ve Yaş zorunludur."); return; }
+window.saveInfo = function() {
+  var n = document.getElementById('inp_name').value;
+  var s = document.getElementById('inp_surname').value;
+  var a = document.getElementById('inp_age').value;
+  var e = document.getElementById('inp_email').value;
+  
+  if(!n || !s || !a) { alert("Ad, Soyad, Yaş zorunlu."); return; }
   
   DATA.name = n; DATA.surname = s; DATA.age = a; DATA.email = e;
-  DATA.code = DATA.project + "_" + n.substring(0,2).toUpperCase() + Math.floor(Math.random()*1000);
+  DATA.code = DATA.project + "_" + Math.floor(Math.random()*9999);
   
-  log("Kullanıcı: " + DATA.code);
-  
-  // Ekstra formları atlayıp direkt işitmeye geçiyoruz (Sorun yaşamamak için basitleştirdim)
-  // İsterseniz buraya if(Esporcu) showCard('esporcu') eklenebilir.
-  showCard('card_hearing');
+  window.log("Kayıt: " + DATA.code);
+  // Diğer formları atlayıp direkt sese geçiyoruz (Sadelik için)
+  window.showCard('card_hearing');
 }
 
-// --- SES MOTORU (WEB AUDIO API) ---
-function initAudio() {
+// --- SES MOTORU ---
+window.initAudio = function() {
   if(!audioCtx) {
-    const AC = window.AudioContext || window.webkitAudioContext;
+    var AC = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AC();
-    log("AudioContext Yaratıldı: " + audioCtx.state);
   }
-  if(audioCtx.state === 'suspended') {
-    audioCtx.resume().then(()=>log("AudioContext Uyandı"));
-  }
-  // Boş bir ses çal (Unlock için)
-  const osc = audioCtx.createOscillator();
-  osc.connect(audioCtx.destination);
-  osc.start(0); osc.stop(0.001);
+  if(audioCtx.state === 'suspended') { audioCtx.resume(); }
 }
 
-// TON (BİP) ÇALMA
-function playTestTone(pan) {
-  initAudio();
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+window.unlockAudio = function() {
+  window.initAudio();
+  // Boş ses çal (Safari Fix)
+  var osc = audioCtx.createOscillator();
+  var g = audioCtx.createGain();
+  g.gain.value = 0.001; // Çok sessiz
+  osc.connect(g); g.connect(audioCtx.destination);
+  osc.start(0); osc.stop(0.01);
+}
 
-  osc.frequency.value = 1500;
+window.playTestTone = function(pan) {
+  window.unlockAudio();
+  var osc = audioCtx.createOscillator();
+  var g = audioCtx.createGain();
+  var panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
   
-  // Ses seviyesini al
-  const vol = (pan === -1) ? document.getElementById('vol_L').value : document.getElementById('vol_R').value;
-  gain.gain.value = parseFloat(vol) * 0.1; // Bip sesi çok yüksek çıkmasın diye %10
-
-  if(panner.pan) panner.pan.value = pan; else panner.setPosition(pan, 0, 0);
-
-  osc.connect(gain);
-  gain.connect(panner);
-  panner.connect(audioCtx.destination);
-
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.5); // 500ms çal
-  log("Bip çalındı. Pan: " + pan);
+  osc.frequency.value = 1500;
+  var vol = (pan===-1) ? document.getElementById('vol_L').value : document.getElementById('vol_R').value;
+  g.gain.value = parseFloat(vol) * 0.1; // Bip sesi kısık olsun
+  
+  if(panner.pan) panner.pan.value = pan; else panner.setPosition(pan,0,0);
+  
+  osc.connect(g); g.connect(panner); panner.connect(audioCtx.destination);
+  
+  osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+  window.log("Test sesi çaldı: " + pan);
 }
 
-// --- ÖN YÜKLEME (PRELOAD) - SAFARI İÇİN KRİTİK ---
-async function finishHearingAndStart() {
-  DATA.leftVol = document.getElementById('vol_L').value;
-  DATA.rightVol = document.getElementById('vol_R').value;
+// --- PRELOAD VE TEST BAŞLATMA ---
+window.prepareAndStart = async function() {
+  window.unlockAudio();
   
   if(DATA.project === 'CI') {
-    // CI ise sesleri yükle
     document.getElementById('loadingOverlay').classList.remove('hidden');
-    initAudio(); // Son kez unlock
-    await loadAllSounds();
+    await window.loadSounds();
     document.getElementById('loadingOverlay').classList.add('hidden');
-    startCITest();
+    window.startCITest();
   } else {
-    alert("Bu demo sadece CI testi içindir.");
+    // Standart test için de aynı mantık eklenebilir
+    alert("Şimdilik sadece CI testi aktif.");
   }
 }
 
-async function loadAllSounds() {
-  log("Sesler yükleniyor...");
-  let loaded = 0;
-  for(let file of FILE_LIST) {
+window.loadSounds = async function() {
+  window.log("Sesler yükleniyor...");
+  var loaded = 0;
+  for(var file of FILE_LIST) {
     try {
-      const resp = await fetch(FILE_PATH + file);
-      const buf = await resp.arrayBuffer();
-      const audioBuf = await audioCtx.decodeAudioData(buf);
-      audioBuffers[file] = audioBuf;
+      var resp = await fetch(FILE_PATH + file);
+      var buf = await resp.arrayBuffer();
+      var ab = await audioCtx.decodeAudioData(buf);
+      audioBuffers[file] = ab;
       loaded++;
-      document.getElementById('loadingText').innerText = `Yükleniyor (%${Math.round(loaded/FILE_LIST.length*100)})`;
-      log("Yüklendi: " + file);
+      document.getElementById('loadingText').innerText = "%" + Math.round(loaded/FILE_LIST.length*100);
     } catch(e) {
-      log("Yükleme Hatası ("+file+"): " + e, true);
+      window.log("HATA Yükleme: " + file);
     }
   }
 }
 
-// --- CI TEST MANTIĞI ---
-let ciQueue = [];
-let ciIndex = 0;
-let ciWaitResponse = false;
-
-function startCITest() {
-  showCard('card_ci');
+// --- CI TEST ---
+window.startCITest = function() {
+  window.showCard('card_ci');
   
-  // Test Kuyruğunu Oluştur
+  // Kuyruk oluştur
   ciQueue = [];
-  const delays = [0, 0.003, 0.006, 0.009];
+  var delays = [0, 0.003, 0.006, 0.009];
   
-  // 1. Tones (Bip)
+  // Tones
   delays.forEach(d => {
-    ciQueue.push({ type:'tone', delay:d, leading:'Left' });
-    if(d > 0) ciQueue.push({ type:'tone', delay:d, leading:'Right' });
+    ciQueue.push({type:'tone', delay:d, lead:'Left'});
+    if(d>0) ciQueue.push({type:'tone', delay:d, lead:'Right'});
   });
-  
-  // 2. Speech (Hece)
+  // Speech
   FILE_LIST.forEach(f => {
     delays.forEach(d => {
-      ciQueue.push({ type:'speech', file:f, delay:d, leading:'Left' });
-      if(d > 0) ciQueue.push({ type:'speech', file:f, delay:d, leading:'Right' });
+      ciQueue.push({type:'speech', file:f, delay:d, lead:'Left'});
+      if(d>0) ciQueue.push({type:'speech', file:f, delay:d, lead:'Right'});
     });
   });
   
@@ -294,133 +260,132 @@ function startCITest() {
   ciQueue.sort(() => Math.random() - 0.5);
   
   ciIndex = 0;
-  setTimeout(playNextCI, 1000);
+  setTimeout(window.playNextCI, 1000);
 }
 
-function playNextCI() {
-  if(ciIndex >= ciQueue.length) { finishExperiment(); return; }
+window.playNextCI = function() {
+  window.unlockAudio(); // HER SEFERİNDE
   
-  const trial = ciQueue[ciIndex];
-  document.getElementById('ci_status').innerText = `Soru ${ciIndex+1} / ${ciQueue.length} Çalınıyor...`;
-  document.querySelectorAll('.respBtn').forEach(b => { b.style.opacity = 0.5; b.onclick = null; }); // Butonları kilitle
-
-  ciWaitResponse = false;
+  if(ciIndex >= ciQueue.length) { window.finishExp(); return; }
   
-  // Çalma işlemi
-  if(trial.type === 'tone') playToneITD(trial);
-  else playSpeechITD(trial);
+  allowClick = false;
+  var trial = ciQueue[ciIndex];
   
-  // 1 saniye sonra butonları aç
+  document.getElementById('ci_info').innerText = "ÇALINIYOR... (" + (ciIndex+1) + "/" + ciQueue.length + ")";
+  
+  if(trial.type === 'tone') window.playToneITD(trial);
+  else window.playSpeechITD(trial);
+  
+  // 1 sn sonra butonları aç
   setTimeout(() => {
-    document.getElementById('ci_status').innerText = "Yanıtlayınız";
-    document.querySelectorAll('.respBtn').forEach(b => { 
-      b.style.opacity = 1; 
-      b.onclick = function() { handleCIResponse(this.innerText, this); }; // Click'i geri yükle
-    });
-    ciWaitResponse = true;
+    document.getElementById('ci_info').innerText = "YANITLAYIN";
+    allowClick = true;
   }, 1000);
 }
 
-function handleCIResponse(ans, btn) {
-  if(!ciWaitResponse) return;
+window.handleResponse = function(ans, btn) {
+  if(!allowClick) return;
   
-  // Görsel efekt
-  btn.style.backgroundColor = "#007AFF";
-  btn.style.color = "white";
-  setTimeout(()=> { btn.style.backgroundColor = "#E5E5EA"; btn.style.color = "#333"; }, 300);
+  // Efekt
+  btn.style.background = "#007AFF"; btn.style.color = "#fff";
+  setTimeout(()=> { btn.style.background = "#E5E5EA"; btn.style.color = "#333"; }, 200);
   
   // Kaydet
-  const trial = ciQueue[ciIndex];
+  var t = ciQueue[ciIndex];
   DATA.results.push({
     trial: ciIndex+1,
-    type: trial.type,
-    stim: trial.file || 'Tone',
-    delay: trial.delay,
-    leading: trial.leading,
-    response: ans
+    type: t.type,
+    stim: t.file || 'Tone',
+    delay: t.delay,
+    lead: t.lead,
+    resp: ans
   });
   
-  log(`Cevap: ${ans} (Gecikme: ${trial.delay}s)`);
-  
   ciIndex++;
-  setTimeout(playNextCI, 1500);
+  setTimeout(window.playNextCI, 1500);
 }
 
-function playToneITD(t) {
-  const oscL = audioCtx.createOscillator(); oscL.frequency.value = 1500;
-  const oscR = audioCtx.createOscillator(); oscR.frequency.value = 1500;
+// --- OYNATMA FONKSİYONLARI ---
+window.playToneITD = function(t) {
+  var oscL = audioCtx.createOscillator(); oscL.frequency.value = 1500;
+  var oscR = audioCtx.createOscillator(); oscR.frequency.value = 1500;
   
-  const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+  var pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+  var pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
   
-  if(pL.pan) { pL.pan.value = -1; pR.pan.value = 1; } 
+  if(pL.pan) { pL.pan.value = -1; pR.pan.value = 1; }
   else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
-
-  const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.leftVol) * 0.1;
-  const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.rightVol) * 0.1;
-
+  
+  var gL = audioCtx.createGain(); gL.gain.value = parseFloat(document.getElementById('vol_L').value) * 0.1;
+  var gR = audioCtx.createGain(); gR.gain.value = parseFloat(document.getElementById('vol_R').value) * 0.1;
+  
   oscL.connect(gL).connect(pL).connect(audioCtx.destination);
   oscR.connect(gR).connect(pR).connect(audioCtx.destination);
-
-  const now = audioCtx.currentTime;
-  let tL = now + 0.1; 
-  let tR = now + 0.1;
   
-  if(t.leading === 'Left') tR += t.delay; else tL += t.delay;
+  var now = audioCtx.currentTime;
+  var tL = now + 0.1;
+  var tR = now + 0.1;
+  
+  if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
   
   oscL.start(tL); oscL.stop(tL+0.5);
   oscR.start(tR); oscR.stop(tR+0.5);
 }
 
-function playSpeechITD(t) {
-  const buffer = audioBuffers[t.file];
-  if(!buffer) { log("Buffer Bulunamadı: " + t.file, true); return; }
-
-  const srcL = audioCtx.createBufferSource();
-  const srcR = audioCtx.createBufferSource();
+window.playSpeechITD = function(t) {
+  var buf = audioBuffers[t.file];
+  if(!buf) { window.log("Ses yok: "+t.file); return; }
   
-  // Kanal Ayırma
-  const bufL = audioCtx.createBuffer(1, buffer.length, buffer.sampleRate);
-  const bufR = audioCtx.createBuffer(1, buffer.length, buffer.sampleRate);
-  bufL.copyToChannel(buffer.getChannelData(0), 0);
-  bufR.copyToChannel(buffer.getChannelData(1), 0);
+  var sL = audioCtx.createBufferSource();
+  var sR = audioCtx.createBufferSource();
   
-  srcL.buffer = bufL; srcR.buffer = bufR;
-
-  const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  if(pL.pan) { pL.pan.value = -1; pR.pan.value = 1; } else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
-
-  const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.leftVol);
-  const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.rightVol);
-
-  srcL.connect(gL).connect(pL).connect(audioCtx.destination);
-  srcR.connect(gR).connect(pR).connect(audioCtx.destination);
-
-  const now = audioCtx.currentTime;
-  let tL = now + 0.1; 
-  let tR = now + 0.1;
-  if(t.leading === 'Left') tR += t.delay; else tL += t.delay;
-
-  srcL.start(tL); srcR.start(tR);
+  var bL = audioCtx.createBuffer(1, buf.length, buf.sampleRate);
+  var bR = audioCtx.createBuffer(1, buf.length, buf.sampleRate);
+  
+  bL.copyToChannel(buf.getChannelData(0), 0);
+  bR.copyToChannel(buf.getChannelData(1), 0);
+  
+  sL.buffer = bL; sR.buffer = bR;
+  
+  var pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+  var pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+  
+  if(pL.pan) { pL.pan.value = -1; pR.pan.value = 1; }
+  else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
+  
+  var gL = audioCtx.createGain(); gL.gain.value = parseFloat(document.getElementById('vol_L').value);
+  var gR = audioCtx.createGain(); gR.gain.value = parseFloat(document.getElementById('vol_R').value);
+  
+  sL.connect(gL).connect(pL).connect(audioCtx.destination);
+  sR.connect(gR).connect(pR).connect(audioCtx.destination);
+  
+  var now = audioCtx.currentTime;
+  var tL = now + 0.1;
+  var tR = now + 0.1;
+  
+  if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
+  
+  sL.start(tL); sR.start(tR);
 }
 
-function finishExperiment() {
-  showCard('card_end');
-  sendEmail();
-}
-
-function sendEmail() {
-  const csv = JSON.stringify(DATA.results); // Basit JSON dökümü
+// --- BİTİŞ ---
+window.finishExp = function() {
+  window.showCard('card_end');
   
-  emailjs.init("FLn2zMqKDGso3ePoO"); // SİZİN ID
-  emailjs.send("service_a8bnfmk", "template_r6sddff", {
-    subject: DATA.code,
-    message: "CI TEST SONUÇLARI:\n" + csv
-  }).then(
-    () => { document.getElementById('end_msg').innerText = "Veriler Başarıyla Gönderildi!"; log("Email OK"); },
-    (err) => { document.getElementById('end_msg').innerText = "Gönderim Hatası: " + JSON.stringify(err); log("Email ERR: " + err, true); }
-  );
+  var csv = JSON.stringify(DATA);
+  
+  if(window.emailjs) {
+    emailjs.init(EMAIL_USER);
+    emailjs.send("service_a8bnfmk", "template_r6sddff", {
+      subject: DATA.code,
+      message: csv
+    }).then(
+      function() { document.getElementById('end_msg').innerText = "Gönderildi!"; },
+      function(e) { document.getElementById('end_msg').innerText = "Hata: " + JSON.stringify(e); }
+    );
+  } else {
+    alert("EmailJS yüklenemedi!");
+  }
 }
 
 });
