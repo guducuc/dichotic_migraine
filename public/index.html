@@ -3,45 +3,53 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI Testi — Final Fix</title>
+<title>Dikotik & CI Testi (Kararlı Sürüm)</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<meta name="emailjs-user"    content="FLn2zMqKDGso3ePoO">
+<meta name="emailjs-service" content="service_a8bnfmk">
+<meta name="emailjs-template" content="template_r6sddff">
 
 <style>
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f4f4f4; color:#333; padding-bottom: 150px;} 
-  h1{font-size:1.4rem; text-align:center; margin-bottom:15px;}
-  .card{background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:20px; margin-bottom:15px;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f0f2f5; color:#333; max-width: 500px; margin: auto;}
+  h1{font-size:1.3rem; text-align:center; margin-bottom:20px; color:#2c3e50;}
+  .card{background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.1); padding:20px; margin-bottom:15px;}
   .hidden{display:none !important;}
   
-  input, select { width:100%; padding:12px; margin:8px 0; border:1px solid #ccc; border-radius:8px; font-size:16px; box-sizing:border-box; }
+  input, select { width:100%; padding:14px; margin:8px 0; border:1px solid #ccc; border-radius:8px; font-size:16px; box-sizing:border-box; }
   
-  .bigBtn { width:100%; padding:15px; border:none; border-radius:8px; background:#007AFF; color:white; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; -webkit-appearance: none; }
-  .bigBtn:active { background:#0056b3; transform:scale(0.98); }
-  .btnGreen { background:#34C759; }
+  /* Mobilde kolay seçim için büyük radyo butonları */
+  input[type="radio"], input[type="checkbox"] { width: 22px; height: 22px; margin-right: 10px; vertical-align: bottom; }
+  label { display: flex; align-items: center; margin-bottom: 12px; font-size: 15px; cursor:pointer; }
+  .question-group { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+  .question-title { font-weight: bold; display: block; margin-bottom: 8px; }
+
+  .bigBtn { width:100%; padding:16px; border:none; border-radius:8px; background:#3498db; color:white; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; }
+  .bigBtn:active { background:#2980b9; transform:scale(0.98); }
+  .btnGreen { background:#27ae60; }
+  .btnRed { background:#c0392b; }
+
+  /* CI / Dikotik Butonları */
+  .respRow { display:flex; gap:8px; margin-top:15px; }
+  .respBtn { flex:1; padding:20px 5px; background:#ecf0f1; border-radius:8px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #bdc3c7; color:#2c3e50; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .respBtn:active, .respBtn-active { background:#2c3e50 !important; color:#fff !important; }
+
+  /* Grid Tablo */
+  .hand-grid-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; }
   
-  /* CI Butonları */
-  .respRow { display:flex; gap:10px; margin-top:15px; }
-  .respBtn { flex:1; padding:15px; background:#E5E5EA; border-radius:8px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; user-select: none; }
+  #ciInfoDisplay { background: #fff3cd; color: #856404; padding: 15px; text-align: center; border-radius: 6px; margin-bottom: 15px; font-weight: bold; border: 1px solid #ffeeba; }
   
-  /* Debug Konsolu */
-  #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:100px; background:#000; color:#0f0; font-family:monospace; font-size:11px; padding:10px; overflow-y:scroll; z-index:9999; border-top:2px solid #333; display:block; }
-  
-  #loadingOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:2000; display:flex; justify-content:center; align-items:center; flex-direction:column; }
+  /* Modal */
+  .modal{position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none}
+  .modal-content{background:#fff;margin:10% auto;padding:20px;border-radius:10px;max-width:90%;max-height:80vh;overflow-y:auto}
+  .close{float:right;font-size:28px;font-weight:bold;cursor:pointer}
 </style>
 </head>
 <body>
 
 <h1>Dikotik & CI Çalışması</h1>
 
-<div id="debugConsole">Sistem Hazır...</div>
-
-<div id="loadingOverlay" class="hidden">
-  <div style="font-size:20px; font-weight:bold; margin-bottom:10px;">Sesler Yükleniyor</div>
-  <div id="loadingText">%0</div>
-</div>
-
 <div id="card_project" class="card">
-  <h3>Proje Seçimi</h3>
+  <h3>Proje Kodu</h3>
   <select id="projectCode">
     <option value="">Seçiniz...</option>
     <option value="CI">CI (Zamanlama)</option>
@@ -50,22 +58,31 @@
     <option value="OCM">OCM</option>
     <option value="OykuTez">Öykü Tez</option>
   </select>
-  <button class="bigBtn" onclick="window.nextStep('card_participation')">Devam</button>
+  <button id="btn_project" class="bigBtn">Devam</button>
 </div>
 
 <div id="card_participation" class="card hidden">
   <h3>Katılım Durumu</h3>
-  <label style="display:block; margin:10px 0;"><input type="radio" name="partType" value="1" checked> İlk kez katılıyorum</label>
-  <label style="display:block; margin:10px 0;"><input type="radio" name="partType" value="2"> Daha önce katıldım</label>
-  <button class="bigBtn" onclick="window.nextStep('card_consent')">Devam</button>
+  <label><input type="radio" name="partType" value="1" checked> İlk kez katılıyorum</label>
+  <label><input type="radio" name="partType" value="2"> Daha önce katıldım</label>
+  <button id="btn_part" class="bigBtn">Devam</button>
 </div>
 
 <div id="card_consent" class="card hidden">
   <h3>Onam Formu</h3>
-  <div style="height:100px; overflow-y:scroll; border:1px solid #ddd; padding:10px; font-size:13px; margin-bottom:10px;">
-    Bu çalışma bilimsel amaçlıdır. Verileriniz anonim kalacaktır.
+  <button id="btn_showConsent" class="bigBtn" style="background:#7f8c8d; margin-bottom:10px;">Onam Formunu Oku</button>
+  <div id="consentTextPreview" style="font-size:13px; color:#666; margin-bottom:10px;"></div>
+  <div style="display:flex; gap:10px;">
+    <button id="btn_accept" class="bigBtn btnGreen">Kabul Ediyorum</button>
+    <button id="btn_decline" class="bigBtn btnRed">Etmiyorum</button>
   </div>
-  <button class="bigBtn btnGreen" onclick="window.nextStep('card_info')">Kabul Ediyorum</button>
+</div>
+
+<div id="consentModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeModal">&times;</span>
+    <div id="modalBody"></div>
+  </div>
 </div>
 
 <div id="card_info" class="card hidden">
@@ -74,317 +91,461 @@
   <input id="inp_surname" placeholder="Soyad (İlk 2 harf)">
   <input id="inp_age" type="number" placeholder="Yaş">
   <input id="inp_email" type="email" placeholder="E-posta">
-  <button class="bigBtn" onclick="window.saveInfo()">Devam</button>
+  <input id="inp_phone" type="tel" placeholder="Telefon">
+  <input id="inp_race" placeholder="Doğum Yeri/Irk">
+  <input id="inp_lang" placeholder="Anadil">
+  <select id="inp_gender"><option value="">Cinsiyet</option><option>Kadın</option><option>Erkek</option><option>Diğer</option></select>
+  
+  <div id="codeDisplay" style="margin-top:10px; font-weight:bold; color:#2c3e50;"></div>
+  <button id="btn_info" class="bigBtn">Devam</button>
+</div>
+
+<div id="card_espor" class="card hidden">
+  <h3>Esporcu Bilgileri</h3>
+  <div class="question-group"><span class="question-title">Oyun Türü</span>
+    <label><input type="radio" name="gameType" value="FPS"> FPS</label>
+    <label><input type="radio" name="gameType" value="MOBA"> MOBA</label>
+    <label><input type="radio" name="gameType" value="Diğer"> Diğer</label>
+  </div>
+  <input id="esp_years" type="number" placeholder="Kaç yıldır oynuyorsunuz?">
+  <button id="btn_espor" class="bigBtn">Devam</button>
+</div>
+
+<div id="card_spor" class="card hidden">
+  <h3>Sporcu Bilgileri</h3>
+  <input id="sp_years" type="number" placeholder="Kaç yıldır spor yapıyorsunuz?">
+  <div class="question-group"><span class="question-title">Pozisyon</span>
+    <label><input type="radio" name="pos" value="Guard"> Guard</label>
+    <label><input type="radio" name="pos" value="Forvet"> Forvet</label>
+    <label><input type="radio" name="pos" value="Pivot"> Pivot</label>
+  </div>
+  <button id="btn_spor" class="bigBtn">Devam</button>
+</div>
+
+<div id="card_hand" class="card hidden">
+  <h3>El Kullanımı</h3>
+  <p style="font-size:13px; color:#666;">(Bu bölüm şu an pasiftir, devam ediniz.)</p>
+  <div id="handQuestionsArea"></div>
+  <button id="btn_hand" class="bigBtn">Devam</button>
+</div>
+
+<div id="card_stai" class="card hidden">
+  <h3>Duygu Durumu</h3>
+  <p style="font-size:13px; color:#666;">(Bu bölüm şu an pasiftir, devam ediniz.)</p>
+  <div id="staiQuestionsArea"></div>
+  <button id="btn_stai" class="bigBtn">Devam</button>
 </div>
 
 <div id="card_hearing" class="card hidden">
   <h3>Ses Kontrolü</h3>
-  <p style="color:red; font-size:13px; font-weight:bold;">⚠️ iPhone: "Sessiz" tuşunu kapatın!</p>
+  <p style="color:#c0392b; font-weight:bold; font-size:14px;">⚠️ iPhone/iPad: Lütfen yandaki "Sessiz" anahtarını kapatıp zil sesini açın.</p>
   
-  <div style="background:#eee; padding:10px; border-radius:8px; margin-bottom:10px;">
-    <label>Sol Ses</label> <input type="range" id="vol_L" min="0" max="1" step="0.1" value="0.5">
-    <button class="bigBtn" style="margin-top:5px; background:#5856d6;" onclick="window.playTestTone(-1)">Sol Test 🔊</button>
+  <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin-bottom:15px;">
+    <label>Sol Kulak Sesi</label>
+    <input type="range" id="vol_L" min="0" max="1" step="0.1" value="0.5">
+    <button id="btn_playL" class="bigBtn" style="background:#9b59b6; margin-top:5px;">Sol Test (Bip) 🔊</button>
   </div>
 
-  <div style="background:#eee; padding:10px; border-radius:8px;">
-    <label>Sağ Ses</label> <input type="range" id="vol_R" min="0" max="1" step="0.1" value="0.5">
-    <button class="bigBtn" style="margin-top:5px; background:#5856d6;" onclick="window.playTestTone(1)">Sağ Test 🔊</button>
+  <div style="background:#f9f9f9; padding:15px; border-radius:8px;">
+    <label>Sağ Kulak Sesi</label>
+    <input type="range" id="vol_R" min="0" max="1" step="0.1" value="0.5">
+    <button id="btn_playR" class="bigBtn" style="background:#9b59b6; margin-top:5px;">Sağ Test (Bip) 🔊</button>
   </div>
 
-  <button class="bigBtn" style="margin-top:20px; background:#ff9500;" onclick="window.prepareAndStart()">TESTİ BAŞLAT</button>
+  <button id="btn_startTest" class="bigBtn" style="margin-top:20px; background:#e67e22;">TESTİ BAŞLAT</button>
 </div>
 
 <div id="card_ci" class="card hidden">
-  <h3>Dinleme Testi</h3>
-  <div id="ci_info" style="text-align:center; padding:15px; background:#fffbe6; margin-bottom:15px; font-weight:bold;">Hazırlanıyor...</div>
+  <h3>Zamanlama Testi (CI)</h3>
+  <div id="ciInfoDisplay">Hazırlanıyor...</div>
+  <div style="text-align:center; font-weight:bold; margin-bottom:10px;">Sesi hangi tarafta duydunuz?</div>
   <div class="respRow">
-    <div class="respBtn" onclick="window.handleResponse('Left', this)">SOL</div>
-    <div class="respBtn" onclick="window.handleResponse('Equal', this)">ORTA</div>
-    <div class="respBtn" onclick="window.handleResponse('Right', this)">SAĞ</div>
+    <div class="respBtn ciBtn" data-ans="Left">SOL</div>
+    <div class="respBtn ciBtn" data-ans="Equal">ORTA / EŞİT</div>
+    <div class="respBtn ciBtn" data-ans="Right">SAĞ</div>
+  </div>
+</div>
+
+<div id="card_dicotic" class="card hidden">
+  <h3>Dikotik Dinleme</h3>
+  <div id="dicoticInfo" style="text-align:center; padding:10px; margin-bottom:10px;"></div>
+  <button id="btn_startSession" class="bigBtn">Başla</button>
+  
+  <div id="dicoticTrials" class="hidden" style="margin-top:20px;">
+    <div class="respRow" style="flex-wrap:wrap;">
+      <div class="respBtn dicoticBtn" data-val="BA">BA</div>
+      <div class="respBtn dicoticBtn" data-val="DA">DA</div>
+      <div class="respBtn dicoticBtn" data-val="GA">GA</div>
+      <div class="respBtn dicoticBtn" data-val="KA">KA</div>
+      <div class="respBtn dicoticBtn" data-val="PA">PA</div>
+      <div class="respBtn dicoticBtn" data-val="TA">TA</div>
+    </div>
   </div>
 </div>
 
 <div id="card_end" class="card hidden">
-  <h3>Bitti!</h3>
-  <p id="end_msg">Gönderiliyor...</p>
+  <h3>Deney Tamamlandı ✅</h3>
+  <p id="endLog" style="color:green; font-weight:bold;">Veriler gönderiliyor...</p>
 </div>
 
 <script>
-// --- GLOBAL DEĞİŞKENLER VE AYARLAR ---
-const FILE_LIST = ["LBA-RBA.wav", "LDA-RDA.wav", "LGA-RGA.wav", "LKA-RKA.wav", "LPA-RPA.wav", "LTA-RTA.wav"];
-const FILE_PATH = "./sounds/yeni/erkek/"; 
-const EMAIL_USER = "FLn2zMqKDGso3ePoO";
+document.addEventListener('DOMContentLoaded', () => {
 
-var DATA = { project:'', results:[] };
-var audioCtx = null;
-var audioBuffers = {};
-var ciQueue = [];
-var ciIndex = 0;
-var allowClick = false;
+// --- YARDIMCILAR ---
+const $id = (id) => document.getElementById(id);
+const hideAll = () => document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+const show = (id) => { hideAll(); $id(id).classList.remove('hidden'); window.scrollTo(0,0); };
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
 
-// --- LOG FONKSİYONU ---
-window.log = function(msg) {
-  var d = document.getElementById('debugConsole');
-  d.innerHTML = "> " + msg + "<br>" + d.innerHTML;
-  console.log(msg);
-}
+// --- GLOBAL VERİLER ---
+let DATA = { project:'', results:[] };
+let audioCtx = null;
+let ciQueue = [];
+let ciIndex = 0;
+let dicoticQueue = [];
+let dicoticIndex = 0;
+let isClickable = false;
+let sessionOrder = [];
+let currentSession = '';
 
-window.onerror = function(msg, url, line) {
-  window.log("HATA: " + msg + " (Satır:" + line + ")");
-  alert("HATA: " + msg);
-};
+// --- DOSYALAR ---
+const CI_FILES = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav"];
+const PATH = "./sounds/yeni/erkek/"; 
 
-// --- SAYFA GEÇİŞLERİ ---
-window.showCard = function(id) {
-  document.querySelectorAll('.card').forEach(function(c){ c.classList.add('hidden'); });
-  document.getElementById(id).classList.remove('hidden');
-  window.unlockAudio(); // Her geçişte ses kilidini açmayı dene
-}
-
-window.nextStep = function(target) {
-  if(target === 'card_participation') {
-    var p = document.getElementById('projectCode').value;
-    if(!p) { alert("Proje seçin!"); return; }
-    DATA.project = p;
-  }
-  window.showCard(target);
-}
-
-window.saveInfo = function() {
-  var n = document.getElementById('inp_name').value;
-  var s = document.getElementById('inp_surname').value;
-  var a = document.getElementById('inp_age').value;
-  var e = document.getElementById('inp_email').value;
-  
-  if(!n || !s || !a) { alert("Ad, Soyad, Yaş zorunlu."); return; }
-  
-  DATA.name = n; DATA.surname = s; DATA.age = a; DATA.email = e;
-  DATA.code = DATA.project + "_" + Math.floor(Math.random()*9999);
-  
-  window.log("Kayıt: " + DATA.code);
-  // Diğer formları atlayıp direkt sese geçiyoruz (Sadelik için)
-  window.showCard('card_hearing');
-}
-
-// --- SES MOTORU ---
-window.initAudio = function() {
+// --- AUDIO MOTORU (SAFARI FIX) ---
+function initAudio() {
   if(!audioCtx) {
-    var AC = window.AudioContext || window.webkitAudioContext;
+    const AC = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AC();
   }
   if(audioCtx.state === 'suspended') { audioCtx.resume(); }
 }
 
-window.unlockAudio = function() {
-  window.initAudio();
-  // Boş ses çal (Safari Fix)
-  var osc = audioCtx.createOscillator();
-  var g = audioCtx.createGain();
-  g.gain.value = 0.001; // Çok sessiz
+// Bu fonksiyon sesi "tekmeler", yani uyanık tutar
+function kickstartAudio() {
+  initAudio();
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  g.gain.value = 0.001; // Duyulmayacak kadar sessiz
   osc.connect(g); g.connect(audioCtx.destination);
   osc.start(0); osc.stop(0.01);
 }
 
-window.playTestTone = function(pan) {
-  window.unlockAudio();
-  var osc = audioCtx.createOscillator();
-  var g = audioCtx.createGain();
-  var panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+// Sayfadaki her tıklamada ses motorunu dürtelim (Safari için)
+document.addEventListener('click', kickstartAudio);
+document.addEventListener('touchstart', kickstartAudio);
+
+// --- AKIŞ ---
+
+// 1. Proje
+$id('btn_project').onclick = () => {
+  const p = $id('projectCode').value;
+  if(!p) return alert("Lütfen proje seçiniz.");
+  DATA.project = p;
+  show('card_participation');
+};
+
+// 2. Katılım
+$id('btn_part').onclick = () => {
+  show('card_consent');
+  // Onam metnini projeye göre ayarla
+  let txt = "Bu çalışma bilimsel amaçlarla yapılmaktadır.";
+  if(DATA.project === 'CI') txt = "CI Zamanlama Çalışması Onam Metni...";
+  $id('consentTextPreview').innerText = txt;
+  $id('modalBody').innerHTML = txt;
+};
+
+// 3. Onam
+$id('btn_showConsent').onclick = () => { $id('consentModal').style.display='block'; };
+$id('closeModal').onclick = () => { $id('consentModal').style.display='none'; };
+$id('btn_accept').onclick = () => { show('card_info'); };
+$id('btn_decline').onclick = () => { alert("Katılım reddedildi."); };
+
+// 4. Bilgi (BURASI TAKILIYORDU - DÜZELTİLDİ)
+$id('btn_info').onclick = () => {
+  const n = $id('inp_name').value.trim();
+  const s = $id('inp_surname').value.trim();
+  const a = $id('inp_age').value.trim();
+  
+  if(!n || !s || !a) return alert("Ad, Soyad ve Yaş zorunludur.");
+  
+  DATA.name = n; DATA.surname = s; DATA.age = a;
+  DATA.email = $id('inp_email').value;
+  DATA.phone = $id('inp_phone').value;
+  DATA.race = $id('inp_race').value;
+  DATA.lang = $id('inp_lang').value;
+  DATA.gender = $id('inp_gender').value;
+  
+  DATA.code = DATA.project + "_" + (n+s).toUpperCase().slice(0,4) + Math.floor(1000+Math.random()*9000);
+  $id('codeDisplay').innerText = "KOD: " + DATA.code;
+  
+  // Yönlendirme
+  if(DATA.project === 'Esporcu') show('card_espor');
+  else if(DATA.project === 'Sporcu') show('card_spor');
+  else show('card_hand'); // Standart akış
+};
+
+// 5. Özel Formlar
+$id('btn_espor').onclick = () => {
+  // Espor verilerini al...
+  DATA.espor = { years: $id('esp_years').value }; // Örnek
+  show('card_hand');
+};
+$id('btn_spor').onclick = () => {
+  // Spor verilerini al...
+  DATA.spor = { years: $id('sp_years').value }; // Örnek
+  show('card_hand');
+};
+
+// 6. El & 7. STAI (BOŞ GEÇİLEBİLİR YAPILDI)
+$id('btn_hand').onclick = () => { show('card_stai'); };
+$id('btn_stai').onclick = () => { show('card_hearing'); };
+
+// 8. İŞİTME TESTİ
+$id('btn_playL').onclick = () => playTone(-1);
+$id('btn_playR').onclick = () => playTone(1);
+
+function playTone(pan) {
+  initAudio();
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  const p = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
   
   osc.frequency.value = 1500;
-  var vol = (pan===-1) ? document.getElementById('vol_L').value : document.getElementById('vol_R').value;
-  g.gain.value = parseFloat(vol) * 0.1; // Bip sesi kısık olsun
   
-  if(panner.pan) panner.pan.value = pan; else panner.setPosition(pan,0,0);
+  const volVal = (pan===-1) ? $id('vol_L').value : $id('vol_R').value;
+  g.gain.value = parseFloat(volVal) * 0.1; // Bip sesi kısık
   
-  osc.connect(g); g.connect(panner); panner.connect(audioCtx.destination);
+  if(p.pan) p.pan.value = pan; else p.setPosition(pan,0,0);
   
+  osc.connect(g).connect(p).connect(audioCtx.destination);
   osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-  window.log("Test sesi çaldı: " + pan);
 }
 
-// --- PRELOAD VE TEST BAŞLATMA ---
-window.prepareAndStart = async function() {
-  window.unlockAudio();
+$id('btn_startTest').onclick = () => {
+  DATA.volL = $id('vol_L').value;
+  DATA.volR = $id('vol_R').value;
   
   if(DATA.project === 'CI') {
-    document.getElementById('loadingOverlay').classList.remove('hidden');
-    await window.loadSounds();
-    document.getElementById('loadingOverlay').classList.add('hidden');
-    window.startCITest();
+    initCITest();
   } else {
-    // Standart test için de aynı mantık eklenebilir
-    alert("Şimdilik sadece CI testi aktif.");
+    // Standart Dikotik Başlat
+    sessionOrder = ['Training', 'NF', 'FR', 'FL']; // Örnek sıra
+    startDicoticSession();
   }
-}
+};
 
-window.loadSounds = async function() {
-  window.log("Sesler yükleniyor...");
-  var loaded = 0;
-  for(var file of FILE_LIST) {
-    try {
-      var resp = await fetch(FILE_PATH + file);
-      var buf = await resp.arrayBuffer();
-      var ab = await audioCtx.decodeAudioData(buf);
-      audioBuffers[file] = ab;
-      loaded++;
-      document.getElementById('loadingText').innerText = "%" + Math.round(loaded/FILE_LIST.length*100);
-    } catch(e) {
-      window.log("HATA Yükleme: " + file);
-    }
-  }
-}
-
-// --- CI TEST ---
-window.startCITest = function() {
-  window.showCard('card_ci');
-  
-  // Kuyruk oluştur
+/* --- CI TEST FONKSİYONLARI --- */
+function initCITest() {
   ciQueue = [];
-  var delays = [0, 0.003, 0.006, 0.009];
+  const delays = [0, 0.003, 0.006, 0.009];
   
   // Tones
   delays.forEach(d => {
     ciQueue.push({type:'tone', delay:d, lead:'Left'});
     if(d>0) ciQueue.push({type:'tone', delay:d, lead:'Right'});
   });
+  
   // Speech
-  FILE_LIST.forEach(f => {
+  CI_FILES.forEach(f => {
     delays.forEach(d => {
       ciQueue.push({type:'speech', file:f, delay:d, lead:'Left'});
       if(d>0) ciQueue.push({type:'speech', file:f, delay:d, lead:'Right'});
     });
   });
   
-  // Karıştır
-  ciQueue.sort(() => Math.random() - 0.5);
-  
+  ciQueue = shuffle(ciQueue);
   ciIndex = 0;
-  setTimeout(window.playNextCI, 1000);
+  show('card_ci');
+  setTimeout(playNextCI, 1000);
 }
 
-window.playNextCI = function() {
-  window.unlockAudio(); // HER SEFERİNDE
+async function playNextCI() {
+  kickstartAudio(); // Safari garantisi
   
-  if(ciIndex >= ciQueue.length) { window.finishExp(); return; }
+  if(ciIndex >= ciQueue.length) { finishExp(); return; }
   
-  allowClick = false;
-  var trial = ciQueue[ciIndex];
+  isClickable = false;
+  const t = ciQueue[ciIndex];
   
-  document.getElementById('ci_info').innerText = "ÇALINIYOR... (" + (ciIndex+1) + "/" + ciQueue.length + ")";
+  $id('ciInfoDisplay').innerText = `Soru ${ciIndex+1} / ${ciQueue.length} (${t.type === 'tone' ? 'BİP' : 'HECE'})`;
+  document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 0.5);
+
+  if(t.type === 'tone') {
+    playToneITD(t);
+  } else {
+    await playSpeechITD(t);
+  }
   
-  if(trial.type === 'tone') window.playToneITD(trial);
-  else window.playSpeechITD(trial);
-  
-  // 1 sn sonra butonları aç
+  // Butonları aktif et
   setTimeout(() => {
-    document.getElementById('ci_info').innerText = "YANITLAYIN";
-    allowClick = true;
-  }, 1000);
+    document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 1);
+    isClickable = true;
+  }, 800); // Ses bitimine yakın aç
 }
 
-window.handleResponse = function(ans, btn) {
-  if(!allowClick) return;
+function playToneITD(t) {
+  const oscL = audioCtx.createOscillator(); oscL.frequency.value = 1500;
+  const oscR = audioCtx.createOscillator(); oscR.frequency.value = 1500;
   
-  // Efekt
-  btn.style.background = "#007AFF"; btn.style.color = "#fff";
-  setTimeout(()=> { btn.style.background = "#E5E5EA"; btn.style.color = "#333"; }, 200);
+  const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL) * 0.1;
+  const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR) * 0.1;
   
-  // Kaydet
-  var t = ciQueue[ciIndex];
-  DATA.results.push({
-    trial: ciIndex+1,
-    type: t.type,
-    stim: t.file || 'Tone',
-    delay: t.delay,
-    lead: t.lead,
-    resp: ans
-  });
+  const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+  const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
   
-  ciIndex++;
-  setTimeout(window.playNextCI, 1500);
-}
-
-// --- OYNATMA FONKSİYONLARI ---
-window.playToneITD = function(t) {
-  var oscL = audioCtx.createOscillator(); oscL.frequency.value = 1500;
-  var oscR = audioCtx.createOscillator(); oscR.frequency.value = 1500;
-  
-  var pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  var pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  
-  if(pL.pan) { pL.pan.value = -1; pR.pan.value = 1; }
-  else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
-  
-  var gL = audioCtx.createGain(); gL.gain.value = parseFloat(document.getElementById('vol_L').value) * 0.1;
-  var gR = audioCtx.createGain(); gR.gain.value = parseFloat(document.getElementById('vol_R').value) * 0.1;
+  if(pL.pan) { pL.pan.value=-1; pR.pan.value=1; } else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
   
   oscL.connect(gL).connect(pL).connect(audioCtx.destination);
   oscR.connect(gR).connect(pR).connect(audioCtx.destination);
   
-  var now = audioCtx.currentTime;
-  var tL = now + 0.1;
-  var tR = now + 0.1;
-  
+  const now = audioCtx.currentTime;
+  let tL = now + 0.1; let tR = now + 0.1;
   if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
   
   oscL.start(tL); oscL.stop(tL+0.5);
   oscR.start(tR); oscR.stop(tR+0.5);
 }
 
-window.playSpeechITD = function(t) {
-  var buf = audioBuffers[t.file];
-  if(!buf) { window.log("Ses yok: "+t.file); return; }
-  
-  var sL = audioCtx.createBufferSource();
-  var sR = audioCtx.createBufferSource();
-  
-  var bL = audioCtx.createBuffer(1, buf.length, buf.sampleRate);
-  var bR = audioCtx.createBuffer(1, buf.length, buf.sampleRate);
-  
-  bL.copyToChannel(buf.getChannelData(0), 0);
-  bR.copyToChannel(buf.getChannelData(1), 0);
-  
-  sL.buffer = bL; sR.buffer = bR;
-  
-  var pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  var pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  
-  if(pL.pan) { pL.pan.value = -1; pR.pan.value = 1; }
-  else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
-  
-  var gL = audioCtx.createGain(); gL.gain.value = parseFloat(document.getElementById('vol_L').value);
-  var gR = audioCtx.createGain(); gR.gain.value = parseFloat(document.getElementById('vol_R').value);
-  
-  sL.connect(gL).connect(pL).connect(audioCtx.destination);
-  sR.connect(gR).connect(pR).connect(audioCtx.destination);
-  
-  var now = audioCtx.currentTime;
-  var tL = now + 0.1;
-  var tR = now + 0.1;
-  
-  if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
-  
-  sL.start(tL); sR.start(tR);
+async function playSpeechITD(t) {
+  try {
+    const res = await fetch(PATH + t.file);
+    const buf = await res.arrayBuffer();
+    const ab = await audioCtx.decodeAudioData(buf);
+    
+    const srcL = audioCtx.createBufferSource();
+    const srcR = audioCtx.createBufferSource();
+    
+    // Mono kanal ayırma
+    const bL = audioCtx.createBuffer(1, ab.length, ab.sampleRate);
+    const bR = audioCtx.createBuffer(1, ab.length, ab.sampleRate);
+    bL.copyToChannel(ab.getChannelData(0), 0);
+    bR.copyToChannel(ab.getChannelData(1), 0);
+    
+    srcL.buffer = bL; srcR.buffer = bR;
+    
+    const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
+    const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR);
+    
+    const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+    const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+    
+    if(pL.pan) { pL.pan.value=-1; pR.pan.value=1; } else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
+    
+    srcL.connect(gL).connect(pL).connect(audioCtx.destination);
+    srcR.connect(gR).connect(pR).connect(audioCtx.destination);
+    
+    const now = audioCtx.currentTime;
+    let tL = now + 0.1; let tR = now + 0.1;
+    if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
+    
+    srcL.start(tL); srcR.start(tR);
+    
+  } catch(e) {
+    console.error(e);
+    // Hata olursa pas geç
+    ciIndex++; setTimeout(playNextCI, 500);
+  }
 }
 
-// --- BİTİŞ ---
-window.finishExp = function() {
-  window.showCard('card_end');
+// CI Yanıt
+document.querySelectorAll('.ciBtn').forEach(btn => {
+  btn.onclick = () => {
+    if(!isClickable) return;
+    
+    const t = ciQueue[ciIndex];
+    DATA.results.push({
+      trial: ciIndex+1,
+      type: t.type,
+      stim: t.file || 'Tone',
+      delay: t.delay,
+      lead: t.lead,
+      resp: btn.dataset.ans
+    });
+    
+    // Görsel efekt
+    btn.style.background = '#3498db'; btn.style.color = '#fff';
+    setTimeout(()=>{ btn.style.background = '#ecf0f1'; btn.style.color = '#2c3e50'; }, 200);
+    
+    ciIndex++;
+    setTimeout(playNextCI, 1500);
+  };
+});
+
+/* --- DİKOTİK / STANDART TEST --- */
+function startDicoticSession() {
+  if(sessionOrder.length === 0) { finishExp(); return; }
+  currentSession = sessionOrder.shift();
   
-  var csv = JSON.stringify(DATA);
+  $id('dicoticInfo').innerText = "Oturum: " + currentSession + "\nLütfen bekleyiniz...";
+  $id('btn_startSession').classList.remove('hidden');
+  $id('dicoticTrials').classList.add('hidden');
+  show('card_dicotic');
+}
+
+$id('btn_startSession').onclick = () => {
+  kickstartAudio();
+  $id('btn_startSession').classList.add('hidden');
+  $id('dicoticTrials').classList.remove('hidden');
+  
+  // Örnek playlist
+  dicoticQueue = ["LBA-RBA.wav", "LDA-RDA.wav"]; 
+  dicoticIndex = 0;
+  playNextDicotic();
+};
+
+function playNextDicotic() {
+  if(dicoticIndex >= dicoticQueue.length) { startDicoticSession(); return; }
+  
+  const file = dicoticQueue[dicoticIndex];
+  isClickable = false;
+  
+  $id('dicoticInfo').innerText = (dicoticIndex+1) + " / " + dicoticQueue.length;
+  
+  // Basit çalma (Standard Audio Element yerine Web Audio ile)
+  playDicoticFile(file);
+  
+  setTimeout(()=>{ isClickable = true; }, 500);
+}
+
+async function playDicoticFile(file) {
+  try {
+    const res = await fetch(PATH + file);
+    const buf = await res.arrayBuffer();
+    const ab = await audioCtx.decodeAudioData(buf);
+    const src = audioCtx.createBufferSource();
+    src.buffer = ab;
+    src.connect(audioCtx.destination);
+    src.start(0);
+  } catch(e) { console.log(e); }
+}
+
+document.querySelectorAll('.dicoticBtn').forEach(btn => {
+  btn.onclick = () => {
+    if(!isClickable) return;
+    DATA.results.push({ session: currentSession, trial: dicoticIndex+1, resp: btn.dataset.val });
+    dicoticIndex++;
+    setTimeout(playNextDicotic, 1500);
+  };
+});
+
+/* --- BİTİŞ & EMAIL --- */
+function finishExp() {
+  show('card_end');
+  
+  const csv = JSON.stringify(DATA);
   
   if(window.emailjs) {
-    emailjs.init(EMAIL_USER);
+    emailjs.init("FLn2zMqKDGso3ePoO");
     emailjs.send("service_a8bnfmk", "template_r6sddff", {
       subject: DATA.code,
       message: csv
     }).then(
-      function() { document.getElementById('end_msg').innerText = "Gönderildi!"; },
-      function(e) { document.getElementById('end_msg').innerText = "Hata: " + JSON.stringify(e); }
+      () => { $id('endLog').innerText = "Veriler gönderildi! Teşekkürler."; },
+      (e) => { $id('endLog').innerText = "Gönderim Hatası: " + JSON.stringify(e); }
     );
   } else {
-    alert("EmailJS yüklenemedi!");
+    $id('endLog').innerText = "Email modülü yüklenemedi.";
   }
 }
 
