@@ -47,8 +47,8 @@
 </style>
 
 <script>
-  window.onerror = function(msg, url, line, col, error) {
-     alert("HATA OLUŞTU!\n\nMesaj: " + msg + "\nSatır: " + line);
+  window.onerror = function(msg, url, line) {
+     alert("HATA: " + msg + "\nSatır: " + line);
      return false;
   };
 </script>
@@ -79,6 +79,7 @@
 
 <div id="consentCard" class="card hidden">
   <h3>Aydınlatılmış Onam</h3>
+  <button id="openConsentPopup" class="bigBtn" style="margin-bottom:15px; background:#34495e;">Onam Formunu Görüntüle</button>
   <div id="consentText" style="border:1px solid #ddd;padding:12px;border-radius:6px;max-height:250px;overflow:auto; background: #fff; font-size: 13px; line-height: 1.5;"></div>
   <div style="display:flex;gap:10px;margin-top:15px">
     <button id="consentAccept" class="bigBtn btnGreen" style="margin-top:0">Okudum, onaylıyorum</button>
@@ -158,27 +159,27 @@
 
 <div id="handUseCard" class="card hidden">
   <h3>El Kullanımı Testi</h3>
-  <p class="small">Sağ veya sol elinizi hangi işlemlerde kullandığınızı bilmek istiyoruz. (Şu an bu kısım pasif, lütfen devam ediniz)</p>
+  <p class="small">Sağ veya sol elinizi hangi işlemlerde kullandığınızı bilmek istiyoruz. (Bu kısım pasif)</p>
   <div id="handUseQuestions"></div>
   <button id="toStaiBtn" class="bigBtn">Devam</button>
 </div>
 
 <div id="staiCard" class="card hidden">
   <h3>STAI-TXI Formu</h3>
-  <p class="small">Duygu durum anketi. (Şu an bu kısım pasif, lütfen devam ediniz)</p>
+  <p class="small">Duygu durum anketi. (Bu kısım pasif)</p>
   <div id="staiQuestions"></div>
   <button id="toHearingBtn" class="bigBtn">Devam</button>
 </div>
 
 <div id="hearingCard" class="card hidden">
   <h3>İşitme Kontrolü</h3>
-  <p class="small" style="color:#c0392b; font-weight:bold;">⚠️ ÖNEMLİ (iPhone/iPad): Telefonun solundaki "Sessiz" tuşunu kapatın (zil sesi açık olmalı), aksi takdirde ses duyulmayabilir.</p>
+  <p class="small" style="color:#c0392b; font-weight:bold;">⚠️ ÖNEMLİ (iPhone/iPad): Telefonun solundaki "Sessiz" tuşunu kapatın.</p>
   <div style="margin-top:10px; padding:10px; background:#f0f0f0; border-radius:6px;">
-    <label><b>Sol Kulak Test Sesi</b></label>
+    <label><b>Sol Kulak</b></label>
     <input type="range" id="leftSlider" min="0" max="1" step="0.01" value="0.5"><button id="playLeft" class="bigBtn" style="margin-top:5px; background:#3498db;">Sol Oynat 🔊</button>
   </div>
   <div style="margin-top:10px; padding:10px; background:#f0f0f0; border-radius:6px;">
-    <label><b>Sağ Kulak Test Sesi</b></label>
+    <label><b>Sağ Kulak</b></label>
     <input type="range" id="rightSlider" min="0" max="1" step="0.01" value="0.5"><button id="playRight" class="bigBtn" style="margin-top:5px; background:#3498db;">Sağ Oynat 🔊</button>
   </div>
   <button id="toSessionIntro" class="bigBtn">Testi Başlat</button>
@@ -224,8 +225,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 const $id = id => document.getElementById(id);
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
 
-/* --- E-POSTA AYARLARI (GÖMÜLÜ) --- */
-// Burayı HTML'den okumak yerine garanti olsun diye buraya koydum
+/* --- E-POSTA AYARLARI --- */
 const EMAIL_USER_ID = "FLn2zMqKDGso3ePoO"; 
 const EMAIL_CONFIG = {
   "Esporcu": { service: "service_a8bnfmk", template: "template_r6sddff" },
