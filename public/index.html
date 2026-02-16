@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI Testi (Sonuç Ekranlı)</title>
+<title>Dikotik & CI Testi (Mac Fix v4)</title>
 
 <meta name="emailjs-user"    content="FLn2zMqKDGso3ePoO">
 <meta name="emailjs-service" content="service_a8bnfmk">
@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <style>
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f0f2f5; color:#333; max-width: 600px; margin: auto;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f0f2f5; color:#333; max-width: 600px; margin: auto; padding-bottom: 120px;}
   h1{font-size:1.3rem; text-align:center; margin-bottom:20px; color:#2c3e50;}
   .card{background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.1); padding:20px; margin-bottom:15px;}
   .hidden{display:none !important;}
@@ -24,6 +24,11 @@
   .bigBtn { width:100%; padding:16px; border:none; border-radius:8px; background:#3498db; color:white; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; transition: background 0.2s; }
   .bigBtn:active { background:#2980b9; transform:scale(0.98); }
   .btnGreen { background:#27ae60; } .btnRed { background:#c0392b; }
+
+  /* Debug Konsolu */
+  #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:100px; background:rgba(0,0,0,0.9); color:#0f0; font-family:monospace; font-size:11px; padding:10px; overflow-y:auto; z-index:9999; border-top:2px solid #444; }
+  .log-err { color: #ff5555; font-weight:bold; }
+  .log-ok { color: #55ff55; }
 
   /* Yükleme Ekranı */
   #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index: 2000; display:flex; flex-direction:column; justify-content:center; align-items:center; }
@@ -52,10 +57,14 @@
 
 <h1>Dikotik & CI Çalışması</h1>
 
+<div id="debugConsole">Sistem Başlatıldı...<br></div>
+
 <div id="loadingOverlay" class="hidden">
   <div class="loader"></div>
   <div style="font-weight:bold; font-size:18px;">Sesler Yükleniyor...</div>
   <div id="loadingText" style="margin-top:10px; color:#666; font-size: 16px;">%0</div>
+  <div id="loadingError" style="margin-top:10px; color:red; font-size: 12px; max-width:80%; text-align:center;"></div>
+  <button class="bigBtn" style="margin-top:20px; width:auto; padding:10px 20px; background:#555;" onclick="document.getElementById('loadingOverlay').classList.add('hidden')">Kapat ve Devam Et</button>
 </div>
 
 <div id="card_project" class="card">
@@ -199,6 +208,16 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
+// --- LOGLAMA ---
+const logBox = document.getElementById('debugConsole');
+function log(msg, type='info') {
+    const time = new Date().toLocaleTimeString();
+    const color = type === 'error' ? '#ff5555' : '#55ff55';
+    logBox.innerHTML = `<span style="color:${color}">[${time}] ${msg}</span><br>` + logBox.innerHTML;
+    console.log(`[${type}] ${msg}`);
+}
+window.onerror = function(msg, url, line) { log("JS HATASI: " + msg + " (Satır " + line + ")", 'error'); };
+
 // --- YARDIMCILAR ---
 const $id = (id) => document.getElementById(id);
 const hideAll = () => document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
@@ -227,8 +246,11 @@ function initAudio() {
   if(!audioCtx) {
     const AC = window.AudioContext || window.webkitAudioContext;
     audioCtx = new AC();
+    log("AudioContext Yaratıldı: " + audioCtx.state);
   }
-  if(audioCtx.state === 'suspended') { audioCtx.resume(); }
+  if(audioCtx.state === 'suspended') { 
+      audioCtx.resume().then(()=>log("AudioContext Uyandı")); 
+  }
 }
 
 // 1. ÖN YÜKLEME FONKSİYONU (Düzeltildi)
@@ -237,37 +259,30 @@ async function preloadAllSounds() {
   $id('loadingOverlay').classList.remove('hidden');
   
   let loadedCount = 0;
+  log("Dosya yükleme başladı...");
+  
   for (const filename of UNIQUE_FILES) {
     try {
       const response = await fetch(PATH + filename);
+      if (!response.ok) throw new Error("HTTP Hatası: " + response.status);
+      
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
       audioBuffers[filename] = audioBuffer;
       
       loadedCount++;
-      // HATA BURADAYDI, ŞİMDİ DÜZELDİ:
       const percent = Math.round((loadedCount / UNIQUE_FILES.length) * 100);
       $id('loadingText').innerText = "%" + percent;
       
     } catch (e) {
-      console.error("Yükleme hatası:", filename, e);
+      log("Dosya Yüklenemedi: " + filename + " -> " + e.message, 'error');
+      $id('loadingError').innerText = "Hata: " + filename + " yüklenemedi. (İnternet bağlantınızı veya dosya yollarını kontrol edin)";
     }
   }
   
+  log("Yükleme tamamlandı. Toplam: " + loadedCount);
   $id('loadingOverlay').classList.add('hidden');
 }
-
-// Safari Dürtme
-function kickstartAudio() {
-  initAudio();
-  const osc = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  g.gain.value = 0.001; 
-  osc.connect(g); g.connect(audioCtx.destination);
-  osc.start(0); osc.stop(0.01);
-}
-document.body.addEventListener('click', kickstartAudio);
-document.body.addEventListener('touchstart', kickstartAudio);
 
 // --- AKIŞ ---
 
@@ -275,7 +290,10 @@ $id('btn_project').onclick = () => {
   const p = $id('projectCode').value;
   if(!p) return alert("Lütfen proje seçiniz.");
   DATA.project = p;
-  preloadAllSounds(); // HEMEN BAŞLA
+  
+  // ÖNEMLİ: Butona basar basmaz yüklemeyi başlat
+  preloadAllSounds(); 
+  
   show('card_participation');
 };
 
@@ -315,25 +333,47 @@ $id('btn_spor').onclick = () => { DATA.spor = { years: $id('sp_years').value }; 
 $id('btn_hand').onclick = () => { show('card_stai'); };
 $id('btn_stai').onclick = () => { show('card_hearing'); };
 
-$id('btn_playL').onclick = () => playTone(-1);
-$id('btn_playR').onclick = () => playTone(1);
+// 8. İşitme - HER BUTONA HARD RESUME EKLENDİ
+$id('btn_playL').onclick = async () => {
+    if(audioCtx.state === 'suspended') await audioCtx.resume();
+    playTone(-1);
+};
+$id('btn_playR').onclick = async () => {
+    if(audioCtx.state === 'suspended') await audioCtx.resume();
+    playTone(1);
+};
 
 function playTone(pan) {
-  kickstartAudio();
-  const osc = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  const p = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  
-  osc.frequency.value = 1500;
-  const volVal = (pan===-1) ? $id('vol_L').value : $id('vol_R').value;
-  g.gain.value = parseFloat(volVal) * 0.2;
-  
-  if(p.pan) p.pan.value = pan; else p.setPosition(pan,0,0);
-  osc.connect(g).connect(p).connect(audioCtx.destination);
-  osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+  try {
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      
+      // Safari Panner Check
+      let p;
+      if(audioCtx.createStereoPanner) {
+          p = audioCtx.createStereoPanner();
+          if(p.pan) p.pan.value = pan;
+      } else {
+          p = audioCtx.createPanner();
+          p.setPosition(pan, 0, 0);
+      }
+      
+      osc.frequency.value = 1500;
+      const volVal = (pan===-1) ? $id('vol_L').value : $id('vol_R').value;
+      g.gain.value = parseFloat(volVal) * 0.2;
+      
+      osc.connect(g).connect(p).connect(audioCtx.destination);
+      osc.start(); 
+      osc.stop(audioCtx.currentTime + 0.5);
+      log("Bip çaldı: " + pan);
+  } catch(e) {
+      log("Bip Hatası: " + e.message, 'error');
+  }
 }
 
-$id('btn_startTest').onclick = () => {
+$id('btn_startTest').onclick = async () => {
+  if(audioCtx.state === 'suspended') await audioCtx.resume();
+  
   DATA.volL = $id('vol_L').value;
   DATA.volR = $id('vol_R').value;
   if(DATA.project === 'CI') initCITest(); else { sessionOrder = ['training', 'NF', ...shuffle(['FR','FL'])]; startDicoticSession(); }
@@ -354,7 +394,9 @@ function initCITest() {
 }
 
 async function playNextCI() {
-  kickstartAudio();
+  // Safari Hard Resume
+  if(audioCtx.state === 'suspended') await audioCtx.resume();
+
   if(ciIndex >= ciQueue.length) { finishExp(); return; }
   
   isClickable = false;
@@ -375,10 +417,16 @@ function playToneITD(t) {
   const oscR = audioCtx.createOscillator(); oscR.frequency.value = 1500;
   const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL) * 0.2;
   const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR) * 0.2;
-  const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
   
-  if(pL.pan) { pL.pan.value=-1; pR.pan.value=1; } else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
+  // Panner
+  let pL, pR;
+  if(audioCtx.createStereoPanner) {
+      pL = audioCtx.createStereoPanner(); pL.pan.value = -1;
+      pR = audioCtx.createStereoPanner(); pR.pan.value = 1;
+  } else {
+      pL = audioCtx.createPanner(); pL.setPosition(-1,0,0);
+      pR = audioCtx.createPanner(); pR.setPosition(1,0,0);
+  }
   
   oscL.connect(gL).connect(pL).connect(audioCtx.destination);
   oscR.connect(gR).connect(pR).connect(audioCtx.destination);
@@ -388,11 +436,15 @@ function playToneITD(t) {
   if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
   
   oscL.start(tL); oscL.stop(tL+0.5); oscR.start(tR); oscR.stop(tR+0.5);
+  log("CI Tone Çaldı: " + t.delay);
 }
 
 function playSpeechFromBuffer(t) {
   const buffer = audioBuffers[t.file];
-  if(!buffer) { console.error("Buffer yok:", t.file); return; }
+  if(!buffer) { 
+      log("HATA: Buffer boş -> " + t.file, 'error'); 
+      return; 
+  }
 
   const srcL = audioCtx.createBufferSource(); const srcR = audioCtx.createBufferSource();
   const bL = audioCtx.createBuffer(1, buffer.length, buffer.sampleRate);
@@ -402,10 +454,16 @@ function playSpeechFromBuffer(t) {
   
   const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
   const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR);
-  const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-  const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
   
-  if(pL.pan) { pL.pan.value=-1; pR.pan.value=1; } else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
+  // Panner
+  let pL, pR;
+  if(audioCtx.createStereoPanner) {
+      pL = audioCtx.createStereoPanner(); pL.pan.value = -1;
+      pR = audioCtx.createStereoPanner(); pR.pan.value = 1;
+  } else {
+      pL = audioCtx.createPanner(); pL.setPosition(-1,0,0);
+      pR = audioCtx.createPanner(); pR.setPosition(1,0,0);
+  }
   
   srcL.connect(gL).connect(pL).connect(audioCtx.destination);
   srcR.connect(gR).connect(pR).connect(audioCtx.destination);
@@ -415,6 +473,7 @@ function playSpeechFromBuffer(t) {
   if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
   
   srcL.start(tL); srcR.start(tR);
+  log("CI Speech Çaldı: " + t.file);
 }
 
 document.querySelectorAll('.ciBtn').forEach(btn => {
@@ -444,12 +503,12 @@ function startDicoticSession() {
   show('card_dicotic');
 }
 
-$id('btn_startSession').onclick = () => {
-  kickstartAudio();
+$id('btn_startSession').onclick = async () => {
+  if(audioCtx.state === 'suspended') await audioCtx.resume();
   $id('btn_startSession').classList.add('hidden');
   $id('dicoticTrials').classList.remove('hidden');
   if(currentSession === 'training') dicoticQueue = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav"];
-  else dicoticQueue = mainPlaylist;
+  else dicoticQueue = UNIQUE_FILES; // Tüm dosyalardan
   dicoticIndex = 0; playNextDicotic();
 };
 
@@ -471,6 +530,9 @@ function playNextDicotic() {
     gL.connect(merge, 0, 0); gR.connect(merge, 0, 1);
     merge.connect(audioCtx.destination);
     src.start(0);
+    log("Dikotik Çaldı: " + file);
+  } else {
+      log("HATA: Buffer yok " + file, 'error');
   }
   setTimeout(()=>{ isClickable = true; }, 500);
 }
@@ -479,9 +541,7 @@ document.querySelectorAll('.dicoticBtn').forEach(btn => {
   btn.onclick = () => {
     if(!isClickable) return;
     const file = dicoticQueue[dicoticIndex];
-    // Basit Doğruluk Kontrolü (Dosya adında hece var mı?)
     const isMatched = file.includes(btn.dataset.val) ? "Uyumlu" : "-";
-    
     DATA.results.push({ session: currentSession, trial: dicoticIndex+1, stim:file, resp: btn.dataset.val, isCorrect: isMatched });
     dicoticIndex++; setTimeout(playNextDicotic, 1500);
   };
@@ -491,30 +551,23 @@ document.querySelectorAll('.dicoticBtn').forEach(btn => {
 function finishExp() {
   show('card_end');
   
-  // SONUÇ TABLOSUNU OLUŞTUR
-  let html = '<table class="results-table"><thead><tr><th>Soru</th><th>Tür/Ses</th><th>Gecikme/Taraf</th><th>Yanıt</th><th>Durum</th></tr></thead><tbody>';
-  
+  // TABLO OLUŞTURMA
+  let html = '<table class="results-table"><thead><tr><th>Soru</th><th>Detay</th><th>Yanıt</th><th>Durum</th></tr></thead><tbody>';
   DATA.results.forEach(r => {
     let displayCorrect = "";
     if(r.isCorrect === "Correct") displayCorrect = '<span class="res-correct">✅ Doğru</span>';
     else if(r.isCorrect === "Wrong") displayCorrect = '<span class="res-wrong">❌ Yanlış</span>';
-    else displayCorrect = r.isCorrect; // Dikotik için
+    else displayCorrect = r.isCorrect;
     
     let info = r.stim;
-    let detail = r.lead ? (r.lead + " +" + (r.delay*1000)+"ms") : "-";
+    if(r.lead) info += ` (${r.lead} +${r.delay*1000}ms)`;
     
-    html += `<tr>
-      <td>${r.trial}</td>
-      <td>${info}</td>
-      <td>${detail}</td>
-      <td>${r.resp}</td>
-      <td>${displayCorrect}</td>
-    </tr>`;
+    html += `<tr><td>${r.trial}</td><td>${info}</td><td>${r.resp}</td><td>${displayCorrect}</td></tr>`;
   });
   html += '</tbody></table>';
   $id('resultTableContainer').innerHTML = html;
 
-  // EMAIL GÖNDERİMİ
+  // EMAIL
   const csv = JSON.stringify(DATA);
   const C = {
       "Esporcu": { user:"Dcj_DG2JDke9NmiZa", service:"service_4l3letv", template:"template_m3i8rcd" },
