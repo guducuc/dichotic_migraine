@@ -3,11 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI (Güvenli Mod)</title>
-
-<meta name="emailjs-user"    content="FLn2zMqKDGso3ePoO">
-<meta name="emailjs-service" content="service_a8bnfmk">
-<meta name="emailjs-template" content="template_r6sddff">
+<title>Dikotik & CI (Global Fix)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
@@ -27,7 +23,11 @@
 
   /* Debug Konsolu */
   #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:120px; background:#000; color:#0f0; font-family:monospace; font-size:11px; padding:10px; overflow-y:auto; z-index:9999; border-top:2px solid #444; }
-  .log-err { color: #ff5555; font-weight:bold; }
+  
+  /* Yükleme Ekranı */
+  #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index: 2000; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+  .loader { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
   .respRow { display:flex; gap:8px; margin-top:15px; }
   .respBtn { flex:1; padding:20px 5px; background:#ecf0f1; border-radius:8px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #bdc3c7; color:#2c3e50; user-select: none; }
@@ -35,23 +35,29 @@
   
   #ciInfoDisplay { background: #fff3cd; color: #856404; padding: 15px; text-align: center; border-radius: 6px; margin-bottom: 15px; font-weight: bold; border: 1px solid #ffeeba; }
   
+  .modal{position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none}
+  .modal-content{background:#fff;margin:10% auto;padding:20px;border-radius:10px;max-width:90%;max-height:80vh;overflow-y:auto}
+  .close{float:right;font-size:28px;font-weight:bold;cursor:pointer}
+  
   /* Sonuç Tablosu */
   table.results-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
   table.results-table th, table.results-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
   table.results-table th { background-color: #f2f2f2; font-weight: bold; }
   .res-correct { color: green; font-weight: bold; }
   .res-wrong { color: red; font-weight: bold; }
-
-  .modal{position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none}
-  .modal-content{background:#fff;margin:10% auto;padding:20px;border-radius:10px;max-width:90%;max-height:80vh;overflow-y:auto}
-  .close{float:right;font-size:28px;font-weight:bold;cursor:pointer}
 </style>
 </head>
 <body>
 
 <h1>Dikotik & CI Çalışması</h1>
 
-<div id="debugConsole">Sistem Hazır...</div>
+<div id="debugConsole">Sistem Bekleniyor...</div>
+
+<div id="loadingOverlay" class="hidden">
+  <div class="loader"></div>
+  <div style="font-weight:bold; font-size:18px;">Sesler Yükleniyor...</div>
+  <div id="loadingText" style="margin-top:10px; color:#666;">%0</div>
+</div>
 
 <div id="card_project" class="card">
   <h3>Proje Kodu</h3>
@@ -63,14 +69,14 @@
     <option value="OCM">OCM</option>
     <option value="OykuTez">Öykü Tez</option>
   </select>
-  <button class="bigBtn" onclick="tryNextStep('card_participation')">Devam</button>
+  <button class="bigBtn" onclick="onProjectSelect()">Devam</button>
 </div>
 
 <div id="card_participation" class="card hidden">
   <h3>Katılım Durumu</h3>
   <label><input type="radio" name="partType" value="1" checked> İlk kez katılıyorum</label>
   <label><input type="radio" name="partType" value="2"> Daha önce katıldım</label>
-  <button class="bigBtn" onclick="showConsent()">Devam</button>
+  <button class="bigBtn" onclick="onParticipationSelect()">Devam</button>
 </div>
 
 <div id="card_consent" class="card hidden">
@@ -129,14 +135,12 @@
 <div id="card_hand" class="card hidden">
   <h3>El Kullanımı</h3>
   <p style="font-size:13px; color:#666;">(Bu bölüm şu an pasiftir, devam ediniz.)</p>
-  <div id="handQuestionsArea"></div>
   <button class="bigBtn" onclick="show('card_stai')">Devam</button>
 </div>
 
 <div id="card_stai" class="card hidden">
   <h3>Duygu Durumu</h3>
   <p style="font-size:13px; color:#666;">(Bu bölüm şu an pasiftir, devam ediniz.)</p>
-  <div id="staiQuestionsArea"></div>
   <button class="bigBtn" onclick="show('card_hearing')">Devam</button>
 </div>
 
@@ -184,23 +188,26 @@
 <div id="card_end" class="card hidden">
   <h3>Deney Tamamlandı ✅</h3>
   <p id="endLog" style="color:green; font-weight:bold;">Veriler gönderiliyor...</p>
-  <div style="margin-top:20px;">
-    <h4>Sonuçlarınız</h4>
-    <div id="resultTableContainer" style="overflow-x:auto;"></div>
-  </div>
+  <div id="resultTableContainer" style="overflow-x:auto; margin-top:20px;"></div>
 </div>
 
 <script>
+/* GLOBAL ALAN: 
+   Fonksiyonlar doğrudan window nesnesine bağlı olmasa bile 
+   script etiketi içinde en üst düzeyde tanımlandığı için 
+   HTML onclick tarafından görülebilir.
+*/
+
 // --- LOGLAMA ---
 const logBox = document.getElementById('debugConsole');
 function log(msg, type='info') {
     const time = new Date().toLocaleTimeString();
     const color = type === 'error' ? '#ff5555' : '#55ff55';
     logBox.innerHTML = `<span style="color:${color}">[${time}] ${msg}</span><br>` + logBox.innerHTML;
-    console.log(`[${type}] ${msg}`);
 }
-// Global hata yakalayıcı
 window.onerror = function(msg, url, line) { log("KRİTİK HATA: " + msg + " (Satır " + line + ")", 'error'); };
+
+log("Script Yüklendi. Butonlar aktif olmalı.");
 
 // --- YARDIMCILAR ---
 const $id = (id) => document.getElementById(id);
@@ -211,6 +218,7 @@ function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.
 // --- GLOBAL VERİLER ---
 let DATA = { project:'', results:[] };
 let audioCtx = null;
+let audioBuffers = {}; 
 let ciQueue = [];
 let ciIndex = 0;
 let dicoticQueue = [];
@@ -220,10 +228,11 @@ let sessionOrder = [];
 let currentSession = '';
 
 // --- DOSYALAR ---
-const CI_FILES = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav"];
+const ALL_FILES = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav", "LBA-RKA.wav","LDA-RGA.wav","LPA-RBA.wav","LKA-RDA.wav","LBA-RBA.wav","LTA-RGA.wav","LBA-RDA.wav","LGA-RPA.wav","LDA-RKA.wav","LPA-RTA.wav","LKA-RKA.wav","LBA-RGA.wav","LKA-RPA.wav","LTA-RDA.wav","LGA-RKA.wav","LPA-RDA.wav","LGA-RGA.wav","LBA-RTA.wav","LGA-RDA.wav","LKA-RTA.wav","LDA-RPA.wav","LTA-RKA.wav","LPA-RPA.wav","LDA-RBA.wav","LGA-RTA.wav","LPA-RKA.wav","LTA-RBA.wav","LKA-RGA.wav","LTA-RTA.wav","LBA-RPA.wav","LDA-RTA.wav","LGA-RBA.wav","LTA-RPA.wav","LDA-RDA.wav","LKA-RBA.wav","LPA-RGA.wav"];
+const UNIQUE_FILES = [...new Set(ALL_FILES)]; 
 const PATH = "./sounds/yeni/erkek/"; 
 
-// --- SES MOTORU (Basitleştirilmiş) ---
+// --- SES MOTORU ---
 function initAudio() {
   try {
     if(!audioCtx) {
@@ -250,17 +259,42 @@ function kickstartAudio() {
 document.body.addEventListener('click', kickstartAudio);
 document.body.addEventListener('touchstart', kickstartAudio);
 
-// --- AKIŞ ---
+// YÜKLEME FONKSİYONU
+async function preloadAllSounds() {
+  initAudio();
+  $id('loadingOverlay').classList.remove('hidden');
+  let loadedCount = 0;
+  
+  for (const filename of UNIQUE_FILES) {
+    try {
+      const response = await fetch(PATH + filename);
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+      audioBuffers[filename] = audioBuffer;
+      
+      loadedCount++;
+      const percent = Math.round((loadedCount / UNIQUE_FILES.length) * 100);
+      $id('loadingText').innerText = "%" + percent;
+    } catch (e) {
+      log("Yüklenemedi: " + filename, 'error');
+    }
+  }
+  $id('loadingOverlay').classList.add('hidden');
+  log("Yükleme bitti.");
+}
 
-// Global fonksiyona çevirdik
-window.tryNextStep = function(targetId) {
+// --- AKIŞ FONKSİYONLARI ---
+
+function onProjectSelect() {
     const p = $id('projectCode').value;
     if(!p) return alert("Lütfen proje seçiniz.");
     DATA.project = p;
-    show(targetId);
+    preloadAllSounds(); // HEMEN YÜKLEMEYE BAŞLA
+    show('card_participation');
 }
 
-window.showConsent = function() {
+function onParticipationSelect() {
     show('card_consent');
     let txt = "Bu çalışma bilimsel amaçlarla yapılmaktadır.";
     if(DATA.project === 'CI') txt = "CI Zamanlama Çalışması...";
@@ -268,10 +302,10 @@ window.showConsent = function() {
     $id('modalBody').innerHTML = txt;
 }
 
-window.openModal = function() { $id('consentModal').style.display='flex'; }
-window.closeModal = function() { $id('consentModal').style.display='none'; }
+function openModal() { $id('consentModal').style.display='flex'; }
+function closeModal() { $id('consentModal').style.display='none'; }
 
-window.saveInfo = function() {
+function saveInfo() {
     const n = $id('inp_name').value.trim();
     const s = $id('inp_surname').value.trim();
     const a = $id('inp_age').value.trim();
@@ -279,10 +313,6 @@ window.saveInfo = function() {
     
     DATA.name = n; DATA.surname = s; DATA.age = a;
     DATA.email = $id('inp_email').value;
-    DATA.phone = $id('inp_phone').value;
-    DATA.race = $id('inp_race').value;
-    DATA.lang = $id('inp_lang').value;
-    DATA.gender = $id('inp_gender').value;
     DATA.code = DATA.project + "_" + (n+s).toUpperCase().slice(0,4) + Math.floor(1000+Math.random()*9000);
     $id('codeDisplay').innerText = "KOD: " + DATA.code;
     
@@ -291,32 +321,29 @@ window.saveInfo = function() {
     else show('card_hand'); 
 }
 
-window.saveExtra = function(type) {
+function saveExtra(type) {
     if(type==='espor') DATA.espor = { years: $id('esp_years').value };
     if(type==='spor') DATA.spor = { years: $id('sp_years').value };
     show('card_hand');
 }
 
-// 8. İşitme Testi
-window.playTestTone = function(pan) {
+function playTestTone(pan) {
     kickstartAudio();
-    if(!audioCtx) return log("Ses motoru yok!", 'error');
-    
+    if(!audioCtx) return;
     const osc = audioCtx.createOscillator();
     const g = audioCtx.createGain();
     const p = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
     
     osc.frequency.value = 1500;
-    const volVal = (pan===-1) ? $id('vol_L').value : $id('vol_R').value;
-    g.gain.value = parseFloat(volVal) * 0.2;
+    const v = (pan===-1) ? $id('vol_L').value : $id('vol_R').value;
+    g.gain.value = parseFloat(v) * 0.2;
     
     if(p.pan) p.pan.value = pan; else p.setPosition(pan,0,0);
     osc.connect(g).connect(p).connect(audioCtx.destination);
     osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-    log("Bip çaldı: " + pan);
 }
 
-window.startMainTest = function() {
+function startMainTest() {
     DATA.volL = $id('vol_L').value;
     DATA.volR = $id('vol_R').value;
     if(DATA.project === 'CI') initCITest(); else { sessionOrder = ['training', 'NF', ...shuffle(['FR','FL'])]; startDicoticSession(); }
@@ -326,9 +353,7 @@ window.startMainTest = function() {
 function initCITest() {
     ciQueue = [];
     const delays = [0, 0.003, 0.006, 0.009];
-    // Tones
     delays.forEach(d => { ciQueue.push({type:'tone', delay:d, lead:'Left'}); if(d>0) ciQueue.push({type:'tone', delay:d, lead:'Right'}); });
-    // Speech
     ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav"].forEach(f => {
         delays.forEach(d => { ciQueue.push({type:'speech', file:f, delay:d, lead:'Left'}); if(d>0) ciQueue.push({type:'speech', file:f, delay:d, lead:'Right'}); });
     });
@@ -338,25 +363,16 @@ function initCITest() {
     setTimeout(playNextCI, 1000);
 }
 
-async function playNextCI() {
+function playNextCI() {
     kickstartAudio();
     if(ciIndex >= ciQueue.length) { finishExp(); return; }
-    
     isClickable = false;
     const t = ciQueue[ciIndex];
     $id('ciInfoDisplay').innerHTML = `<strong>${t.type==='tone'?'SAF SES':'HECE'}</strong><br>Soru ${ciIndex+1} / ${ciQueue.length}`;
     document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 0.5);
 
-    if(t.type === 'tone') {
-        playToneITD(t);
-    } else {
-        playSpeech(t);
-    }
-    
-    setTimeout(() => {
-        document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 1);
-        isClickable = true;
-    }, 1000);
+    if(t.type === 'tone') playToneITD(t); else playSpeechFromBuffer(t);
+    setTimeout(() => { document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 1); isClickable = true; }, 1000);
 }
 
 function playToneITD(t) {
@@ -372,77 +388,56 @@ function playToneITD(t) {
     oscL.connect(gL).connect(pL).connect(audioCtx.destination);
     oscR.connect(gR).connect(pR).connect(audioCtx.destination);
     
-    const now = audioCtx.currentTime;
-    let tL = now + 0.1; let tR = now + 0.1;
+    let tL = audioCtx.currentTime + 0.1; let tR = tL;
     if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
     
     oscL.start(tL); oscL.stop(tL+0.5); oscR.start(tR); oscR.stop(tR+0.5);
-    log("Tone çaldı");
 }
 
-async function playSpeech(t) {
-    try {
-        const res = await fetch(PATH + t.file);
-        if(!res.ok) throw new Error("HTTP " + res.status);
-        
-        const buf = await res.arrayBuffer();
-        const ab = await audioCtx.decodeAudioData(buf);
-        
-        const srcL = audioCtx.createBufferSource();
-        const srcR = audioCtx.createBufferSource();
-        const bL = audioCtx.createBuffer(1, ab.length, ab.sampleRate);
-        const bR = audioCtx.createBuffer(1, ab.length, ab.sampleRate);
-        
-        bL.copyToChannel(ab.getChannelData(0), 0);
-        bR.copyToChannel(ab.getChannelData(1), 0);
-        
-        srcL.buffer = bL; srcR.buffer = bR;
-        
-        const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
-        const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR);
-        const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-        const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
-        
-        if(pL.pan) { pL.pan.value=-1; pR.pan.value=1; } else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
-        
-        srcL.connect(gL).connect(pL).connect(audioCtx.destination);
-        srcR.connect(gR).connect(pR).connect(audioCtx.destination);
-        
-        const now = audioCtx.currentTime;
-        let tL = now + 0.1; let tR = now + 0.1;
-        if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
-        
-        srcL.start(tL); srcR.start(tR);
-        log("Speech çaldı: " + t.file);
-        
-    } catch(e) {
-        log("HATA (Dosya Yüklenemedi): " + t.file + " -> " + e.message, 'error');
-        // Fallback: Dosya yoksa bile devam et
-        setTimeout(() => { ciIndex++; playNextCI(); }, 1000);
-    }
+function playSpeechFromBuffer(t) {
+    const buffer = audioBuffers[t.file];
+    if(!buffer) return log("Buffer yok: " + t.file, 'error');
+
+    const srcL = audioCtx.createBufferSource(); const srcR = audioCtx.createBufferSource();
+    const bL = audioCtx.createBuffer(1, buffer.length, buffer.sampleRate);
+    const bR = audioCtx.createBuffer(1, buffer.length, buffer.sampleRate);
+    bL.copyToChannel(buffer.getChannelData(0), 0); bR.copyToChannel(buffer.getChannelData(1), 0);
+    srcL.buffer = bL; srcR.buffer = bR;
+    
+    const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
+    const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR);
+    const pL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+    const pR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : audioCtx.createPanner();
+    
+    if(pL.pan) { pL.pan.value=-1; pR.pan.value=1; } else { pL.setPosition(-1,0,0); pR.setPosition(1,0,0); }
+    
+    srcL.connect(gL).connect(pL).connect(audioCtx.destination);
+    srcR.connect(gR).connect(pR).connect(audioCtx.destination);
+    
+    let tL = audioCtx.currentTime + 0.1; let tR = tL;
+    if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
+    
+    srcL.start(tL); srcR.start(tR);
 }
 
-window.handleCIResponse = function(ans, btn) {
+function handleCIResponse(ans, btn) {
     if(!isClickable) return;
     const t = ciQueue[ciIndex];
     let correct = "Wrong";
     if(t.delay === 0 && ans === "Equal") correct = "Correct";
     else if(t.lead === ans) correct = "Correct";
-    
     DATA.results.push({session:'CI_ITD', trial:ciIndex+1, type:t.type, stim:t.file||'Tone', delay:t.delay, lead:t.lead, resp:ans, isCorrect:correct});
-    
-    btn.style.background = '#3498db'; btn.style.color = '#fff';
-    setTimeout(()=>{ btn.style.background = '#ecf0f1'; btn.style.color = '#2c3e50'; }, 200);
+    btn.style.background = '#3498db'; setTimeout(()=>{ btn.style.background = '#ecf0f1'; }, 200);
     ciIndex++; setTimeout(playNextCI, 1500);
 }
 
 /* --- DİKOTİK --- */
-window.startDicoticBlocks = function() {
+function startDicoticBlocks() {
     kickstartAudio();
     $id('btn_startSession').classList.add('hidden');
     $id('dicoticTrials').classList.remove('hidden');
     if(currentSession === 'training') dicoticQueue = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav"];
-    else dicoticQueue = ["LBA-RKA.wav","LDA-RGA.wav","LPA-RBA.wav"]; // Örnek kısa liste
+    else dicoticQueue = UNIQUE_FILES;
     dicoticIndex = 0; playNextDicotic();
 }
 
@@ -461,36 +456,24 @@ function playNextDicotic() {
     $id('dicoticInfo').innerText = (dicoticIndex+1) + " / " + dicoticQueue.length;
     
     const file = dicoticQueue[dicoticIndex];
-    playDicoticFile(file);
-    
+    const buffer = audioBuffers[file];
+    if(buffer) {
+        const src = audioCtx.createBufferSource();
+        src.buffer = buffer;
+        const g = audioCtx.createGain();
+        g.gain.value = parseFloat(DATA.volL);
+        src.connect(g).connect(audioCtx.destination);
+        src.start(0);
+    }
     setTimeout(()=>{ isClickable = true; }, 500);
 }
 
-async function playDicoticFile(file) {
-    try {
-        const res = await fetch(PATH + file);
-        if(!res.ok) throw new Error("HTTP " + res.status);
-        const buf = await res.arrayBuffer();
-        const ab = await audioCtx.decodeAudioData(buf);
-        
-        const src = audioCtx.createBufferSource();
-        src.buffer = ab;
-        const g = audioCtx.createGain();
-        g.gain.value = parseFloat(DATA.volL);
-        
-        src.connect(g).connect(audioCtx.destination);
-        src.start(0);
-        log("Dikotik: " + file);
-    } catch(e) {
-        log("Dikotik Hata: " + e.message, 'error');
-    }
-}
-
-window.handleDicoticResponse = function(val, btn) {
+function handleDicoticResponse(val, btn) {
     if(!isClickable) return;
     const file = dicoticQueue[dicoticIndex];
     const match = file.includes(val) ? "Uyumlu" : "-";
     DATA.results.push({ session: currentSession, trial: dicoticIndex+1, stim:file, resp: val, isCorrect: match });
+    btn.style.background = '#3498db'; setTimeout(()=>{ btn.style.background = '#ecf0f1'; }, 200);
     dicoticIndex++; setTimeout(playNextDicotic, 1500);
 }
 
@@ -498,7 +481,6 @@ window.handleDicoticResponse = function(val, btn) {
 function finishExp() {
     show('card_end');
     
-    // Tablo
     let html = '<table class="results-table"><thead><tr><th>Soru</th><th>Detay</th><th>Yanıt</th><th>Durum</th></tr></thead><tbody>';
     DATA.results.forEach(r => {
         let disp = r.isCorrect === "Correct" ? '<span class="res-correct">✅</span>' : (r.isCorrect === "Wrong" ? '<span class="res-wrong">❌</span>' : r.isCorrect);
@@ -511,13 +493,12 @@ function finishExp() {
 
     const csv = JSON.stringify(DATA);
     if(window.emailjs) {
-        emailjs.init("FLn2zMqKDGso3ePoO"); // DEFAULT KEY
+        emailjs.init("FLn2zMqKDGso3ePoO");
         emailjs.send("service_a8bnfmk", "template_r6sddff", { subject: DATA.code, message: csv })
         .then(()=> $id('endLog').innerText = "Gönderildi!", (e)=> $id('endLog').innerText = "Hata: " + JSON.stringify(e));
     }
 }
 
-});
 </script>
 </body>
 </html>
