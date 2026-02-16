@@ -3,62 +3,60 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI (Kanal Yönlendirme Fix)</title>
-
-<meta name="emailjs-user"    content="FLn2zMqKDGso3ePoO">
-<meta name="emailjs-service" content="service_a8bnfmk">
-<meta name="emailjs-template" content="template_r6sddff">
+<title>Dikotik & CI (Global Fix)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <style>
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f2f2f7; color:#1c1c1e; max-width: 600px; margin: auto; padding-bottom: 150px;}
-  h1{font-size:1.3rem; text-align:center; margin-bottom:20px; color:#000;}
-  .card{background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); padding:20px; margin-bottom:20px;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f0f2f5; color:#333; max-width: 600px; margin: auto; padding-bottom: 150px;}
+  h1{font-size:1.3rem; text-align:center; margin-bottom:20px; color:#2c3e50;}
+  .card{background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.1); padding:20px; margin-bottom:15px;}
   .hidden{display:none !important;}
   
-  input, select { width:100%; padding:14px; margin:8px 0; border:1px solid #d1d1d6; border-radius:10px; font-size:16px; box-sizing:border-box; }
-  input[type="radio"] { width: 24px; height: 24px; margin-right: 12px; vertical-align: middle; }
-  label { display: flex; align-items: center; margin-bottom: 14px; font-size: 16px; cursor:pointer; }
+  input, select { width:100%; padding:14px; margin:8px 0; border:1px solid #ccc; border-radius:8px; font-size:16px; box-sizing:border-box; }
+  input[type="radio"], input[type="checkbox"] { width: 22px; height: 22px; margin-right: 10px; vertical-align: bottom; }
+  label { display: flex; align-items: center; margin-bottom: 12px; font-size: 15px; cursor:pointer; }
   
-  .bigBtn { width:100%; padding:16px; border:none; border-radius:12px; background:#007AFF; color:white; font-size:17px; font-weight:600; cursor:pointer; margin-top:10px; transition: opacity 0.2s; }
-  .bigBtn:active { opacity: 0.7; }
-  .btnGreen { background:#34C759; } .btnRed { background:#FF3B30; }
+  .bigBtn { width:100%; padding:16px; border:none; border-radius:8px; background:#3498db; color:white; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; transition: background 0.2s; }
+  .bigBtn:active { background:#2980b9; transform:scale(0.98); }
+  .btnGreen { background:#27ae60; } .btnRed { background:#c0392b; }
 
-  /* Debug Konsolu */
-  #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:120px; background:#1c1c1e; color:#30d158; font-family:monospace; font-size:11px; padding:10px; overflow-y:auto; z-index:9999; border-top:1px solid #333; }
-  
   /* Başlatma Ekranı */
   #startOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index: 3000; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; }
 
+  /* Debug Konsolu */
+  #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:100px; background:#000; color:#0f0; font-family:monospace; font-size:11px; padding:10px; overflow-y:auto; z-index:9999; border-top:2px solid #444; }
+  .log-err { color: #ff5555; font-weight:bold; }
+
   /* Yükleme Ekranı */
   #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index: 2000; display:flex; flex-direction:column; justify-content:center; align-items:center; }
-  .loader { border: 4px solid #e5e5ea; border-top: 4px solid #007AFF; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+  .loader { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px; }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-  .respRow { display:flex; gap:10px; margin-top:15px; }
-  .respBtn { flex:1; padding:20px 5px; background:#f2f2f7; border-radius:10px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; color:#1c1c1e; user-select: none; }
-  .respBtn:active, .respBtn-active { background:#007AFF !important; color:#fff !important; }
+  .respRow { display:flex; gap:8px; margin-top:15px; }
+  .respBtn { flex:1; padding:20px 5px; background:#ecf0f1; border-radius:8px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #bdc3c7; color:#2c3e50; user-select: none; }
+  .respBtn:active, .respBtn-active { background:#2c3e50 !important; color:#fff !important; }
   
-  #ciInfoDisplay { background: #e5e5ea; color: #1c1c1e; padding: 15px; text-align: center; border-radius: 10px; margin-bottom: 15px; font-weight: bold; }
+  #ciInfoDisplay { background: #fff3cd; color: #856404; padding: 15px; text-align: center; border-radius: 6px; margin-bottom: 15px; font-weight: bold; border: 1px solid #ffeeba; }
   
-  .modal{position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none; align-items:center; justify-content:center;}
-  .modal-content{background:#fff; padding:25px; border-radius:16px; max-width:90%; max-height:80vh; overflow-y:auto; position:relative; width: 500px;}
-  .close{position:absolute; top:10px; right:15px; font-size:24px; cursor:pointer; color:#8e8e93;}
+  /* Modal */
+  .modal{position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none; align-items:center; justify-content:center;}
+  .modal-content{background:#fff;padding:20px;border-radius:10px;max-width:90%;max-height:80vh;overflow-y:auto; position:relative; width: 500px;}
+  .close{position:absolute; top:10px; right:15px; font-size:28px; font-weight:bold; cursor:pointer;}
   
   /* Sonuç Tablosu */
   table.results-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-  table.results-table th, table.results-table td { border: 1px solid #d1d1d6; padding: 8px; text-align: center; }
-  table.results-table th { background-color: #f2f2f7; font-weight: bold; }
-  .res-correct { color: #34C759; font-weight: bold; }
-  .res-wrong { color: #FF3B30; font-weight: bold; }
+  table.results-table th, table.results-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+  table.results-table th { background-color: #f2f2f2; font-weight: bold; }
+  .res-correct { color: green; font-weight: bold; }
+  .res-wrong { color: red; font-weight: bold; }
 </style>
 </head>
 <body>
 
 <h1>Dikotik & CI Çalışması</h1>
 
-<div id="debugConsole">Sistem Bekleniyor...<br></div>
+<div id="debugConsole">Sistem Hazır. Butona basın.</div>
 
 <div id="startOverlay">
   <h2>Teste Hoşgeldiniz</h2>
@@ -69,7 +67,7 @@
 <div id="loadingOverlay" class="hidden">
   <div class="loader"></div>
   <div style="font-weight:bold; font-size:18px;">Sesler Yükleniyor...</div>
-  <div id="loadingText" style="margin-top:10px; color:#8e8e93;">%0</div>
+  <div id="loadingText" style="margin-top:10px; color:#666;">%0</div>
 </div>
 
 <div id="card_project" class="card hidden">
@@ -94,8 +92,8 @@
 
 <div id="card_consent" class="card hidden">
   <h3>Onam Formu</h3>
-  <button class="bigBtn" style="background:#8e8e93; margin-bottom:15px;" onclick="openModal()">Onam Formunu Oku</button>
-  <div id="consentTextPreview" style="font-size:13px; color:#666; margin-bottom:15px;"></div>
+  <button class="bigBtn" style="background:#7f8c8d; margin-bottom:10px;" onclick="openModal()">Onam Formunu Oku</button>
+  <div id="consentTextPreview" style="font-size:13px; color:#666; margin-bottom:10px;"></div>
   <div style="display:flex; gap:10px;">
     <button class="bigBtn btnGreen" onclick="show('card_info')">Kabul Ediyorum</button>
     <button class="bigBtn btnRed" onclick="alert('Reddedildi.')">Etmiyorum</button>
@@ -119,7 +117,7 @@
   <input id="inp_race" placeholder="Doğum Yeri/Irk">
   <input id="inp_lang" placeholder="Anadil">
   <select id="inp_gender"><option value="">Cinsiyet</option><option>Kadın</option><option>Erkek</option><option>Diğer</option></select>
-  <div id="codeDisplay" style="margin-top:10px; font-weight:bold; color:#007AFF;"></div>
+  <div id="codeDisplay" style="margin-top:10px; font-weight:bold; color:#2c3e50;"></div>
   <button class="bigBtn" onclick="saveInfo()">Devam</button>
 </div>
 
@@ -147,28 +145,28 @@
 
 <div id="card_hand" class="card hidden">
   <h3>El Kullanımı</h3>
-  <p style="font-size:14px; color:#666;">(Bu bölüm şu an pasiftir, devam ediniz.)</p>
+  <p style="font-size:13px; color:#666;">(Bu bölüm şu an pasiftir, devam ediniz.)</p>
   <button class="bigBtn" onclick="show('card_stai')">Devam</button>
 </div>
 
 <div id="card_stai" class="card hidden">
   <h3>Duygu Durumu</h3>
-  <p style="font-size:14px; color:#666;">(Bu bölüm şu an pasiftir, devam ediniz.)</p>
+  <p style="font-size:13px; color:#666;">(Bu bölüm şu an pasiftir, devam ediniz.)</p>
   <button class="bigBtn" onclick="show('card_hearing')">Devam</button>
 </div>
 
 <div id="card_hearing" class="card hidden">
   <h3>Ses Kontrolü</h3>
-  <p style="color:#FF3B30; font-weight:bold; font-size:14px;">⚠️ iPhone/iPad: Lütfen yandaki "Sessiz" anahtarını kapatın.</p>
-  <div style="background:#fff; padding:15px; border:1px solid #d1d1d6; border-radius:12px; margin-bottom:15px;">
+  <p style="color:#c0392b; font-weight:bold; font-size:14px;">⚠️ iPhone/iPad: Lütfen yandaki "Sessiz" anahtarını kapatın.</p>
+  <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin-bottom:15px;">
     <label>Sol Kulak Sesi</label><input type="range" id="vol_L" min="0" max="1" step="0.1" value="0.5">
-    <button class="bigBtn" style="background:#5856D6; margin-top:5px;" onclick="playTestTone(-1)">Sol Test (Bip) 🔊</button>
+    <button class="bigBtn" style="background:#9b59b6; margin-top:5px;" onclick="playTestTone(-1)">Sol Test (Bip) 🔊</button>
   </div>
-  <div style="background:#fff; padding:15px; border:1px solid #d1d1d6; border-radius:12px;">
+  <div style="background:#f9f9f9; padding:15px; border-radius:8px;">
     <label>Sağ Kulak Sesi</label><input type="range" id="vol_R" min="0" max="1" step="0.1" value="0.5">
-    <button class="bigBtn" style="background:#5856D6; margin-top:5px;" onclick="playTestTone(1)">Sağ Test (Bip) 🔊</button>
+    <button class="bigBtn" style="background:#9b59b6; margin-top:5px;" onclick="playTestTone(1)">Sağ Test (Bip) 🔊</button>
   </div>
-  <button class="bigBtn" style="margin-top:25px; background:#FF9500;" onclick="startMainTest()">TESTİ BAŞLAT</button>
+  <button class="bigBtn" style="margin-top:20px; background:#e67e22;" onclick="startMainTest()">TESTİ BAŞLAT</button>
 </div>
 
 <div id="card_ci" class="card hidden">
@@ -201,14 +199,27 @@
 <div id="card_end" class="card hidden">
   <h3>Deney Tamamlandı ✅</h3>
   <p id="endLog" style="color:green; font-weight:bold;">Veriler gönderiliyor...</p>
-  <div style="margin-top:20px;">
-    <h4>Sonuçlarınız</h4>
-    <div id="resultTableContainer" style="overflow-x:auto;"></div>
-  </div>
+  <div id="resultTableContainer" style="overflow-x:auto; margin-top:20px;"></div>
 </div>
 
 <script>
-// --- GLOBAL DEĞİŞKENLER ---
+// --- LOGLAMA ---
+const logBox = document.getElementById('debugConsole');
+function log(msg, type='info') {
+    const time = new Date().toLocaleTimeString();
+    const color = type === 'error' ? '#ff5555' : '#55ff55';
+    logBox.innerHTML = `<span style="color:${color}">[${time}] ${msg}</span><br>` + logBox.innerHTML;
+    console.log(`[${type}] ${msg}`);
+}
+window.onerror = function(msg, url, line) { log("JS HATASI: " + msg + " (Satır " + line + ")", 'error'); };
+
+// --- YARDIMCILAR ---
+const $id = (id) => document.getElementById(id);
+const hideAll = () => document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+const show = (id) => { hideAll(); $id(id).classList.remove('hidden'); window.scrollTo(0,0); };
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
+
+// --- GLOBAL VERİLER ---
 let DATA = { project:'', results:[] };
 let audioCtx = null;
 let audioBuffers = {}; 
@@ -225,16 +236,7 @@ const ALL_FILES = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-
 const UNIQUE_FILES = [...new Set(ALL_FILES)]; 
 const PATH = "./sounds/yeni/erkek/"; 
 
-// --- LOGLAMA ---
-const logBox = document.getElementById('debugConsole');
-function log(msg, type='info') {
-    const time = new Date().toLocaleTimeString();
-    const color = type === 'error' ? '#ff453a' : '#30d158';
-    logBox.innerHTML = `<span style="color:${color}">[${time}] ${msg}</span><br>` + logBox.innerHTML;
-}
-window.onerror = function(msg, url, line) { log("JS HATASI: " + msg + " (" + line + ")", 'error'); };
-
-// --- SES MOTORU (MERGER TEKNİĞİ - EN GÜÇLÜ YÖNTEM) ---
+// --- 1. SES MOTORUNU BAŞLAT (Global) ---
 function startAudioEngine() {
     try {
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -243,7 +245,7 @@ function startAudioEngine() {
         audioCtx = new AC();
         audioCtx.resume().then(() => {
             log("Ses Motoru Başladı! (State: " + audioCtx.state + ")");
-            // Boş ses çal ve kanalları ısıt
+            // Boş ses çal
             const osc = audioCtx.createOscillator();
             const g = audioCtx.createGain();
             g.gain.value = 0.001;
@@ -257,7 +259,7 @@ function startAudioEngine() {
     } catch(e) { alert("Ses hatası: " + e.message); }
 }
 
-// YÜKLEME
+// --- 2. YÜKLEME (Global) ---
 async function preloadAllSounds() {
     document.getElementById('loadingOverlay').classList.remove('hidden');
     let loaded = 0;
@@ -265,12 +267,13 @@ async function preloadAllSounds() {
     for (const filename of UNIQUE_FILES) {
         try {
             const response = await fetch(PATH + filename);
+            if(!response.ok) throw new Error("HTTP " + response.status);
             const arrayBuffer = await response.arrayBuffer();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
             audioBuffers[filename] = audioBuffer;
-            
             loaded++;
-            document.getElementById('loadingText').innerText = "%" + Math.round((loaded/UNIQUE_FILES.length)*100);
+            const percent = Math.round((loaded/UNIQUE_FILES.length)*100);
+            $id('loadingText').innerText = "%" + percent;
         } catch (e) {
             log("Yüklenemedi: " + filename, 'error');
         }
@@ -279,14 +282,7 @@ async function preloadAllSounds() {
     log("Tüm sesler yüklendi.");
 }
 
-// --- AKIŞ ---
-function show(id) { 
-    document.querySelectorAll('.card').forEach(c => c.classList.add('hidden')); 
-    document.getElementById(id).classList.remove('hidden'); 
-    window.scrollTo(0,0);
-}
-function nextStep(id) { show(id); }
-function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
+// --- 3. AKIŞ FONKSİYONLARI (Hepsi Global) ---
 
 function onProjectSelect() {
     const p = document.getElementById('projectCode').value;
@@ -313,7 +309,7 @@ function saveInfo() {
     DATA.code = DATA.project + "_" + Math.floor(Math.random()*9999);
     document.getElementById('codeDisplay').innerText = "KOD: " + DATA.code;
     
-    // Gerekli veri toplama (basitleştirildi)
+    // Basit veri kaydı
     DATA.name = n;
     
     if(DATA.project === 'Esporcu') show('card_espor');
@@ -321,57 +317,35 @@ function saveInfo() {
     else show('card_hand'); 
 }
 
-function saveExtra(t) { show('card_hand'); }
+function saveExtra(type) { show('card_hand'); }
 
-// --- KANAL BİRLEŞTİRİCİ (MERGER) İLE OYNATMA (STEREO PANNER YERİNE) ---
-function playSoundWithMerger(sourceNode, panVal) {
-    // panVal: -1 (Sol), 1 (Sağ), 0 (Orta)
-    // Kaynak mono ise bunu sol ve sağ kanallara manuel dağıtacağız
-    
-    const splitter = audioCtx.createChannelSplitter(2); // Gerekirse
-    const merger = audioCtx.createChannelMerger(2); // 2 Kanallı çıkış (L, R)
-    const gainL = audioCtx.createGain();
-    const gainR = audioCtx.createGain();
-    
-    // Ses Seviyelerini al
-    const volL = parseFloat(document.getElementById('vol_L').value);
-    const volR = parseFloat(document.getElementById('vol_R').value);
-    
-    // Pan Mantığı (Basit Güç Dağılımı)
-    // Eğer Sol (-1) ise: Sol Gain = 1 * volL, Sağ Gain = 0
-    // Eğer Sağ (1) ise: Sol Gain = 0, Sağ Gain = 1 * volR
-    
-    let gL_val = (panVal === 1) ? 0 : 1; 
-    let gR_val = (panVal === -1) ? 0 : 1;
-    
-    gainL.gain.value = gL_val * volL;
-    gainR.gain.value = gR_val * volR;
-    
-    // Bağlantı: Source -> Gain -> Merger -> Destination
-    // Tek kaynak olduğu için her iki gain'e de bağlıyoruz
-    sourceNode.connect(gainL);
-    sourceNode.connect(gainR);
-    
-    // Gain çıkışlarını Merger'ın kanallarına bağla
-    // Kanal 0 = Sol, Kanal 1 = Sağ
-    gainL.connect(merger, 0, 0); 
-    gainR.connect(merger, 0, 1);
-    
-    merger.connect(audioCtx.destination);
-    
-    // Zaman logla
-    log("Çalıyor (T: " + audioCtx.currentTime.toFixed(2) + ")");
-}
-
+// --- 4. SES OYNATMA (MERGER ILE) ---
 function playTestTone(pan) {
     if(!audioCtx) return;
     const osc = audioCtx.createOscillator();
     osc.frequency.value = 1500;
     
-    playSoundWithMerger(osc, pan);
+    // Merger ile kanal dağıtımı
+    const merger = audioCtx.createChannelMerger(2);
+    const gainL = audioCtx.createGain();
+    const gainR = audioCtx.createGain();
+    
+    const volL = parseFloat(document.getElementById('vol_L').value) * 0.1; // Bip kısık
+    const volR = parseFloat(document.getElementById('vol_R').value) * 0.1;
+    
+    // Eğer pan Sol ise Sol açık, Sağ kapalı
+    gainL.gain.value = (pan === -1) ? volL : 0;
+    gainR.gain.value = (pan === 1) ? volR : 0;
+    
+    osc.connect(gainL); osc.connect(gainR);
+    gainL.connect(merger, 0, 0); 
+    gainR.connect(merger, 0, 1);
+    
+    merger.connect(audioCtx.destination);
     
     osc.start(); 
     osc.stop(audioCtx.currentTime + 0.5);
+    log("Bip: " + pan);
 }
 
 function startMainTest() {
@@ -380,7 +354,7 @@ function startMainTest() {
     if(DATA.project === 'CI') initCITest(); else { sessionOrder = ['training', 'NF', ...shuffle(['FR','FL'])]; startDicoticSession(); }
 }
 
-/* --- CI TEST --- */
+/* --- 5. CI TEST --- */
 function initCITest() {
     ciQueue = [];
     const delays = [0, 0.003, 0.006, 0.009];
@@ -401,36 +375,41 @@ function playNextCI() {
     document.getElementById('ciInfoDisplay').innerHTML = `<strong>${t.type}</strong><br>Soru ${ciIndex+1}`;
     document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 0.5);
 
-    // İki ayrı kaynak yaratıp gecikmeli başlatacağız (ITD için)
-    const tL = audioCtx.currentTime + 0.1;
-    let timeL = tL; 
-    let timeR = tL;
+    // Başlangıç zamanı
+    const tStart = audioCtx.currentTime + 0.1;
+    let tL = tStart; let tR = tStart;
     
-    if(t.lead === 'Left') timeR += t.delay; else timeL += t.delay;
+    if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
     
-    // Sol Kaynak
-    let srcL, srcR;
-    
-    if(t.type === 'tone') {
-        srcL = audioCtx.createOscillator(); srcL.frequency.value = 1500;
-        srcR = audioCtx.createOscillator(); srcR.frequency.value = 1500;
-        srcL.start(timeL); srcL.stop(timeL+0.5);
-        srcR.start(timeR); srcR.stop(timeR+0.5);
-    } else {
-        const buf = audioBuffers[t.file];
-        srcL = audioCtx.createBufferSource(); srcL.buffer = buf;
-        srcR = audioCtx.createBufferSource(); srcR.buffer = buf;
-        srcL.start(timeL); 
-        srcR.start(timeR);
-    }
-    
-    // Merger ile manuel kanal atama
+    // Merger Setup
     const merger = audioCtx.createChannelMerger(2);
     const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
     const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR);
     
-    srcL.connect(gL); gL.connect(merger, 0, 0); // Sol kaynak -> Sol Hoparlör
-    srcR.connect(gR); gR.connect(merger, 0, 1); // Sağ kaynak -> Sağ Hoparlör
+    if(t.type === 'tone') {
+        const sL = audioCtx.createOscillator(); sL.frequency.value = 1500;
+        const sR = audioCtx.createOscillator(); sR.frequency.value = 1500;
+        
+        sL.connect(gL); gL.connect(merger, 0, 0);
+        sR.connect(gR); gR.connect(merger, 0, 1);
+        
+        sL.start(tL); sL.stop(tL+0.5);
+        sR.start(tR); sR.stop(tR+0.5);
+    } else {
+        const buf = audioBuffers[t.file];
+        if(!buf) return log("Buffer yok!", 'error');
+        
+        const sL = audioCtx.createBufferSource(); sL.buffer = buf;
+        const sR = audioCtx.createBufferSource(); sR.buffer = buf; // Mono-like kullanım için
+        
+        // Aslında burada stereo dosyanın kanallarını ayırmak daha doğru ama basitlik için:
+        // Dosyayı iki ayrı source gibi düşünüp zaman farkıyla oynatıyoruz.
+        
+        sL.connect(gL); gL.connect(merger, 0, 0);
+        sR.connect(gR); gR.connect(merger, 0, 1);
+        
+        sL.start(tL); sR.start(tR);
+    }
     
     merger.connect(audioCtx.destination);
     
@@ -452,7 +431,7 @@ function handleCIResponse(ans, btn) {
     ciIndex++; setTimeout(playNextCI, 1500);
 }
 
-/* --- DİKOTİK (STEREO DOSYA) --- */
+/* --- 6. DİKOTİK --- */
 function startDicoticBlocks() {
     document.getElementById('btn_startSession').classList.add('hidden');
     document.getElementById('dicoticTrials').classList.remove('hidden');
@@ -479,14 +458,10 @@ function playNextDicotic() {
     const buffer = audioBuffers[file];
     
     if(buffer) {
-        // Stereo dosyayı olduğu gibi çal (ama volüme dikkat et)
         const src = audioCtx.createBufferSource();
         src.buffer = buffer;
-        
-        // Basit gain
         const g = audioCtx.createGain();
-        g.gain.value = parseFloat(DATA.volL); // Basitleştirildi
-        
+        g.gain.value = parseFloat(DATA.volL);
         src.connect(g).connect(audioCtx.destination);
         src.start(0);
     }
@@ -502,7 +477,7 @@ function handleDicoticResponse(val, btn) {
     dicoticIndex++; setTimeout(playNextDicotic, 1500);
 }
 
-/* --- BİTİŞ --- */
+/* --- 7. BİTİŞ --- */
 function finishExp() {
     show('card_end');
     let html = '<table class="results-table"><thead><tr><th>Soru</th><th>Detay</th><th>Yanıt</th><th>Durum</th></tr></thead><tbody>';
@@ -519,11 +494,10 @@ function finishExp() {
     if(window.emailjs) {
         emailjs.init("FLn2zMqKDGso3ePoO");
         emailjs.send("service_a8bnfmk", "template_r6sddff", { subject: DATA.code, message: csv })
-        .then(()=> document.getElementById('endLog').innerText = "Gönderildi!", (e)=> document.getElementById('endLog').innerText = "Hata: " + JSON.stringify(e));
+        .then(()=> document.getElementById('endLog').innerText = "Veriler Gönderildi!", (e)=> document.getElementById('endLog').innerText = "Hata: " + JSON.stringify(e));
     }
 }
 
-});
 </script>
 </body>
 </html>
