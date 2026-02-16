@@ -329,6 +329,83 @@ $id('toHearingBtn').onclick = ()=>{
   
   $id('staiCard').classList.add('hidden'); $id('hearingCard').classList.remove('hidden');
 };
+ /* --- EKSİK OLAN SES MOTORU VE İŞİTME TESTİ GEÇİŞ KODLARI --- */
+
+// 1. Ses Motoru Yardımcıları
+function ensureCtx(){ 
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+  if(audioCtx.state==='suspended') audioCtx.resume(); 
+}
+function stopL(){ try{if(leftOsc)leftOsc.stop()}catch(e){} leftOsc=null; }
+function stopR(){ try{if(rightOsc)rightOsc.stop()}catch(e){} rightOsc=null; }
+
+// Bip sesleri (Tone) seviyesini dengeleme katsayısı (%20)
+const TONE_GAIN_FACTOR = 0.2; 
+
+// 2. Sol Kulak Test Sesi
+async function startL(){
+  ensureCtx(); stopR(); stopL();
+  leftOsc = audioCtx.createOscillator(); leftOsc.frequency.value = 1500;
+  const gain = audioCtx.createGain(); gain.gain.value = Number($id('leftSlider').value) * TONE_GAIN_FACTOR;
+  
+  if(audioCtx.createStereoPanner){ 
+    const p=audioCtx.createStereoPanner(); p.pan.value=-1; 
+    leftOsc.connect(gain).connect(p).connect(audioCtx.destination); 
+  } else { 
+    const p=audioCtx.createPanner(); p.setPosition(-1,0,0); 
+    leftOsc.connect(gain).connect(p).connect(audioCtx.destination); 
+  }
+  leftOsc.start(); setTimeout(stopL, 1200);
+}
+
+// 3. Sağ Kulak Test Sesi
+async function startR(){
+  ensureCtx(); stopL(); stopR();
+  rightOsc = audioCtx.createOscillator(); rightOsc.frequency.value = 1500;
+  const gain = audioCtx.createGain(); gain.gain.value = Number($id('rightSlider').value) * TONE_GAIN_FACTOR;
+  
+  if(audioCtx.createStereoPanner){ 
+    const p=audioCtx.createStereoPanner(); p.pan.value=1; 
+    rightOsc.connect(gain).connect(p).connect(audioCtx.destination); 
+  } else { 
+    const p=audioCtx.createPanner(); p.setPosition(1,0,0); 
+    rightOsc.connect(gain).connect(p).connect(audioCtx.destination); 
+  }
+  rightOsc.start(); setTimeout(stopR, 1200);
+}
+
+// Butonlara Atamalar
+$id('playLeft').onclick = startL; 
+$id('playRight').onclick = startR;
+
+// 4. KRİTİK GEÇİŞ: İşitme Testinden Sonraki Aşamaya Geçiş
+$id('toSessionIntro').onclick = ()=>{
+  // Sesleri durdur
+  stopL(); stopR();
+  
+  // Ses seviyelerini kaydet
+  participant.leftLevel = $id('leftSlider').value; 
+  participant.rightLevel = $id('rightSlider').value;
+  
+  // Sonuçlara ekle
+  results.push({ session: 'hearing_level', trial: 0, stim: '1500Hz', response: '', responseTime: '', leftLevel: participant.leftLevel, rightLevel: participant.rightLevel });
+  
+  // İşitme kartını gizle
+  $id('hearingCard').classList.add('hidden');
+  
+  // YENİ: Eğer proje CI ise CI testini başlat, değilse Standart testi başlat
+  if (participant.projectCode === 'CI') {
+    if(typeof initCITest === 'function') {
+        initCITest(); 
+    } else {
+        alert("CI Test fonksiyonu bulunamadı. Lütfen sayfayı yenileyin.");
+    }
+  } else { 
+    // Standart Dikotik Test Akışı
+    sessionOrder=['training','NF', ...shuffle(['FR','FL'])]; 
+    showSessionIntro(); 
+  }
+}; 
 /* iOS UNLOCKER (Buffer Tekniği) */
 function unlockAudio() {
   if (!audioCtx) { 
