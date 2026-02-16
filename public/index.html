@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI Testi — Hata Ayıklama Modu</title>
+<title>Dikotik & CI Testi — Safari Fix</title>
 
 <style>
   body{font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;margin:12px;color:#111;max-width:480px;margin:auto; background-color:#f9f9f9;}
@@ -12,7 +12,7 @@
   .hidden{display:none !important;}
   input,select,textarea{padding:12px;margin:8px 0;width:100%;box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-size:16px;}
   
-  /* Radyo butonlarını büyüt */
+  /* Radyo butonları */
   input[type="radio"], input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; vertical-align: middle; }
   #participationOptions label, .question-group label { display: flex; align-items: center; margin-bottom: 10px; font-size: 15px; cursor:pointer; padding:5px 0; }
 
@@ -159,21 +159,21 @@
 
 <div id="handUseCard" class="card hidden">
   <h3>El Kullanımı Testi</h3>
-  <p class="small">Sağ veya sol elinizi hangi işlemlerde kullandığınızı bilmek istiyoruz. (Bu kısım pasif)</p>
+  <p class="small">Sağ veya sol elinizi hangi işlemlerde kullandığınızı bilmek istiyoruz. (Bu kısım pasif, lütfen devam ediniz)</p>
   <div id="handUseQuestions"></div>
   <button id="toStaiBtn" class="bigBtn">Devam</button>
 </div>
 
 <div id="staiCard" class="card hidden">
   <h3>STAI-TXI Formu</h3>
-  <p class="small">Duygu durum anketi. (Bu kısım pasif)</p>
+  <p class="small">Duygu durum anketi. (Bu kısım pasif, lütfen devam ediniz)</p>
   <div id="staiQuestions"></div>
   <button id="toHearingBtn" class="bigBtn">Devam</button>
 </div>
 
 <div id="hearingCard" class="card hidden">
   <h3>İşitme Kontrolü</h3>
-  <p class="small" style="color:#c0392b; font-weight:bold;">⚠️ ÖNEMLİ (iPhone/iPad): Telefonun solundaki "Sessiz" tuşunu kapatın.</p>
+  <p class="small" style="color:#c0392b; font-weight:bold;">⚠️ ÖNEMLİ (iPhone/iPad): Telefonun solundaki "Sessiz" tuşunu kapatın (zil sesi açık olmalı).</p>
   <div style="margin-top:10px; padding:10px; background:#f0f0f0; border-radius:6px;">
     <label><b>Sol Kulak</b></label>
     <input type="range" id="leftSlider" min="0" max="1" step="0.01" value="0.5"><button id="playLeft" class="bigBtn" style="margin-top:5px; background:#3498db;">Sol Oynat 🔊</button>
@@ -221,11 +221,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', ()=>{
 
-// Yardımcı Fonksiyon
 const $id = id => document.getElementById(id);
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
 
-/* --- E-POSTA AYARLARI --- */
+/* E-POSTA AYARLARI */
 const EMAIL_USER_ID = "FLn2zMqKDGso3ePoO"; 
 const EMAIL_CONFIG = {
   "Esporcu": { service: "service_a8bnfmk", template: "template_r6sddff" },
@@ -244,18 +243,19 @@ let ciStimuli = [], ciCurrentIndex = 0;
 const ciSpeechFiles = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav"];
 const ciDelays = [0, 0.003, 0.006, 0.009];
 
-/* iOS UNLOCKER */
+/* --- AGRESİF AUDIO UNLOCK (Safari Fix) --- */
 function unlockAudio() {
   if (!audioCtx) { 
     const AC = window.AudioContext || window.webkitAudioContext; 
     audioCtx = new AC(); 
   }
   if (audioCtx.state === 'suspended') { audioCtx.resume(); }
-  
+  // Sessiz bir buffer çal
   const buffer = audioCtx.createBuffer(1, 1, 22050);
   const source = audioCtx.createBufferSource();
   source.buffer = buffer; source.connect(audioCtx.destination); source.start(0);
 }
+// Sayfaya her dokunuşta sesi aç
 document.body.addEventListener('click', unlockAudio, {once:true});
 document.body.addEventListener('touchstart', unlockAudio, {once:true});
 
@@ -267,19 +267,18 @@ const CONSENT_TEXTS = {
   "Default": `<p>İşitsel algı çalışması.</p>`
 };
 
-/* BOŞ SORULAR */
 const handQuestions = []; 
 const staiQuestions = []; 
 
 /* ---------------- FLOW ---------------- */
 
-// 1. PROJE SEÇİMİ
 $id('toParticipationBtn').onclick = ()=>{
   const proj = $id('projectCode').value;
   if(!proj){ alert('Lütfen proje seçiniz.'); return; }
   participant.projectCode = proj;
   $id('projectCard').classList.add('hidden'); $id('participationCard').classList.remove('hidden');
   renderParticipationOptions(proj);
+  unlockAudio(); // Her butona unlock koyuyoruz
 };
 
 function renderParticipationOptions(project){
@@ -290,7 +289,6 @@ function renderParticipationOptions(project){
     (needsSecond ? `<label><input type="radio" name="participation" value="3"> İkinci kez katılıyorum</label>` : '');
 }
 
-// 2. KATILIM DURUMU
 $id('toNextStepBtn').onclick = ()=>{
   const sel = document.querySelector('input[name="participation"]:checked');
   if(!sel){ alert('Seçim yapınız.'); return; }
@@ -301,15 +299,17 @@ $id('toNextStepBtn').onclick = ()=>{
     $id('consentText').innerHTML = txt; $id('modalConsentBody').innerHTML = txt;
     $id('consentCard').classList.remove('hidden');
   } else { $id('enterCodeCard').classList.remove('hidden'); }
+  unlockAudio();
 };
 
-// 3. ONAM
-$id('consentAccept').onclick = ()=>{ $id('consentCard').classList.add('hidden'); $id('infoCard').classList.remove('hidden'); };
+$id('consentAccept').onclick = ()=>{ 
+    $id('consentCard').classList.add('hidden'); $id('infoCard').classList.remove('hidden'); 
+    unlockAudio();
+};
 $id('consentDecline').onclick = ()=>{ $id('consentDeclinedMsg').classList.remove('hidden'); $id('consentAccept').disabled = true; };
 $id('openConsentPopup').onclick=()=>{ $id('consentModal').style.display='block'; };
 $id('closeConsentModal').onclick=()=>{ $id('consentModal').style.display='none'; };
 
-// 4. KATILIMCI BİLGİSİ - DEVAM
 $id('toNextFromInfo').onclick = ()=>{
   const n = $id('name').value.trim();
   const s = $id('surname').value.trim();
@@ -327,9 +327,9 @@ $id('toNextFromInfo').onclick = ()=>{
   if(participant.projectCode === 'Esporcu') $id('esporcuFormCard').classList.remove('hidden');
   else if(participant.projectCode === 'Sporcu') $id('sporcuFormCard').classList.remove('hidden');
   else { renderHand(); $id('handUseCard').classList.remove('hidden'); }
+  unlockAudio();
 };
 
-// 5. ESPORCU FORMU
 $id('toHandFromEsporcu').onclick = ()=>{
   const edu = document.querySelector('input[name="eduStatus"]:checked');
   const plat = document.querySelector('input[name="platform"]:checked');
@@ -341,9 +341,9 @@ $id('toHandFromEsporcu').onclick = ()=>{
   if(!edu || !plat || !type || !years || !hours || !game || !rank){ alert('Eksik bilgi.'); return; }
   participant.esporData = { education: edu.value, platform: plat.value, genre: type.value, yearsPlaying: years, dailyHours: hours, topGame: game, highestRank: rank };
   $id('esporcuFormCard').classList.add('hidden'); renderHand(); $id('handUseCard').classList.remove('hidden');
+  unlockAudio();
 };
 
-// 6. SPORCU FORMU
 $id('toHandFromSporcu').onclick = ()=>{
   const edu = document.querySelector('input[name="eduStatusSporcu"]:checked');
   const years = $id('sportYears').value;
@@ -352,9 +352,9 @@ $id('toHandFromSporcu').onclick = ()=>{
   if(!edu || !years || !bYears || !pos){ alert('Eksik bilgi.'); return; }
   participant.sporcuData = { education: edu.value, sportYears: years, basketballYears: bYears, position: pos.value };
   $id('sporcuFormCard').classList.add('hidden'); renderHand(); $id('handUseCard').classList.remove('hidden');
+  unlockAudio();
 };
 
-// 7. EL TERCİHİ
 function renderHand(){
   const c = $id('handUseQuestions'); c.innerHTML = '';
   if(handQuestions.length>0){
@@ -365,25 +365,25 @@ function renderHand(){
 $id('toStaiBtn').onclick = ()=>{ 
     if(handQuestions.length>0) { /* kontrol */ } 
     $id('handUseCard').classList.add('hidden'); renderStai(); $id('staiCard').classList.remove('hidden'); 
+    unlockAudio();
 };
 
-// 8. STAI
 function renderStai(){
   const c = $id('staiQuestions'); c.innerHTML = '';
   if(staiQuestions.length>0){
       staiQuestions.forEach((q,i)=>{ c.innerHTML += `<div class="question-group"><p>${i+1}. ${q}</p><div class="stai-options"><label><input type="radio" name="staiQ${i+1}" value="1">Hiç</label><label><input type="radio" name="staiQ${i+1}" value="2">Biraz</label><label><input type="radio" name="staiQ${i+1}" value="3">Çok</label><label><input type="radio" name="staiQ${i+1}" value="4">Tamamıyla</label></div></div>`; });
   } else { c.innerHTML='<p>Bu bölüm pasif.</p>'; }
 }
-$id('toHearingBtn').onclick = ()=>{ $id('staiCard').classList.add('hidden'); $id('hearingCard').classList.remove('hidden'); };
+$id('toHearingBtn').onclick = ()=>{ $id('staiCard').classList.add('hidden'); $id('hearingCard').classList.remove('hidden'); unlockAudio(); };
 
-/* --- SES MOTORU --- */
-function ensureCtx(){ if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }
+/* --- SES MOTORU (Düzeltildi: Agresif Unlock) --- */
 function stopL(){ try{if(leftOsc)leftOsc.stop()}catch(e){} leftOsc=null; }
 function stopR(){ try{if(rightOsc)rightOsc.stop()}catch(e){} rightOsc=null; }
 const TONE_GAIN_FACTOR = 0.2; 
 
 async function startL(){
-  ensureCtx(); stopR(); stopL();
+  unlockAudio(); // SAFARI İÇİN ZORUNLU
+  stopR(); stopL();
   leftOsc = audioCtx.createOscillator(); leftOsc.frequency.value = 1500;
   const gain = audioCtx.createGain(); gain.gain.value = Number($id('leftSlider').value) * TONE_GAIN_FACTOR;
   if(audioCtx.createStereoPanner){ const p=audioCtx.createStereoPanner(); p.pan.value=-1; leftOsc.connect(gain).connect(p).connect(audioCtx.destination); }
@@ -391,7 +391,8 @@ async function startL(){
   leftOsc.start(); setTimeout(stopL, 1200);
 }
 async function startR(){
-  ensureCtx(); stopL(); stopR();
+  unlockAudio(); // SAFARI İÇİN ZORUNLU
+  stopL(); stopR();
   rightOsc = audioCtx.createOscillator(); rightOsc.frequency.value = 1500;
   const gain = audioCtx.createGain(); gain.gain.value = Number($id('rightSlider').value) * TONE_GAIN_FACTOR;
   if(audioCtx.createStereoPanner){ const p=audioCtx.createStereoPanner(); p.pan.value=1; rightOsc.connect(gain).connect(p).connect(audioCtx.destination); }
@@ -409,6 +410,7 @@ $id('toSessionIntro').onclick = ()=>{
   
   if (participant.projectCode === 'CI') { initCITest(); } 
   else { sessionOrder=['training','NF', ...shuffle(['FR','FL'])]; showSessionIntro(); }
+  unlockAudio();
 };
 
 /* --- CI TEST LOGIC --- */
@@ -431,6 +433,7 @@ function initCITest() {
 }
 
 async function playCINext() {
+  unlockAudio(); // HER DENEME ÖNCESİ KİLİT AÇ
   if (ciCurrentIndex >= ciStimuli.length) { endExperiment(); return; }
   isResponseAllowed = false;
   const stim = ciStimuli[ciCurrentIndex];
@@ -458,7 +461,7 @@ document.querySelectorAll('.ciRespBtn').forEach(btn => {
 });
 
 function playToneITD(delay, leading) {
-  ensureCtx();
+  unlockAudio();
   const oscL = audioCtx.createOscillator(); oscL.frequency.value = 1500;
   const oscR = audioCtx.createOscillator(); oscR.frequency.value = 1500;
   const gL = audioCtx.createGain(); gL.gain.value = Number($id('leftSlider').value) * TONE_GAIN_FACTOR;
@@ -477,7 +480,7 @@ function playToneITD(delay, leading) {
 }
 
 async function playSpeechITD(file, delay, leading) {
-  ensureCtx();
+  unlockAudio();
   const path = './sounds/yeni/erkek/' + file;
   try {
     const res = await fetch(path);
@@ -513,9 +516,11 @@ function showSessionIntro(){
   $id('sessionTitle').innerText = 'Oturum: ' + s;
   const i = {training:'Eğitim: Sadece dinleyin.', NF:'En iyi duyduğunuzu seçin.', FR:'SAĞ kulağa odaklanın.', FL:'SOL kulağa odaklanın.'};
   $id('sessionInstr').innerText = i[s]; $id('sessionIntro').classList.remove('hidden');
+  unlockAudio();
 }
 $id('sessionStartBtn').onclick = async ()=>{
-  $id('sessionIntro').classList.add('hidden'); ensureCtx();
+  $id('sessionIntro').classList.add('hidden'); 
+  unlockAudio();
   try{ const a = $id('stimAudio'); a.src=''; await a.play().catch(()=>{}); }catch(e){}
   setTimeout(()=> { currentTrial = -1; $id('trialCard').classList.remove('hidden'); nextTrial(); }, 200);
 };
@@ -527,6 +532,7 @@ function nextTrial(){
   playStim(list[currentTrial]);
 }
 async function playStim(stim){
+  unlockAudio();
   isResponseAllowed = false; $id('stimAudio').src = './sounds/yeni/erkek/' + stim;
   try { await $id('stimAudio').play(); responseStart = Date.now(); setTimeout(()=>isResponseAllowed=true, 500); trialTimeout=setTimeout(()=>{if(sessionOrder[currentSessionIndex]!=='training') saveTrial(stim,'no_response',4000); nextTrial();}, 4000); } catch(e){ nextTrial(); }
 }
@@ -554,7 +560,6 @@ function makeCsv(){
   }
   return csv;
 }
-
 async function sendEmail(){
   const csv = makeCsv();
   const config = EMAIL_CONFIG[participant.projectCode] || EMAIL_CONFIG["DEFAULT"];
