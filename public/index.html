@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI (Global Fix)</title>
+<title>Dikotik & CI (Cache Fix)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
@@ -21,11 +21,8 @@
   .bigBtn:active { background:#2980b9; transform:scale(0.98); }
   .btnGreen { background:#27ae60; } .btnRed { background:#c0392b; }
 
-  /* Başlatma Ekranı */
-  #startOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index: 3000; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; }
-
   /* Debug Konsolu */
-  #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:100px; background:#000; color:#0f0; font-family:monospace; font-size:11px; padding:10px; overflow-y:auto; z-index:9999; border-top:2px solid #444; }
+  #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:120px; background:#000; color:#0f0; font-family:monospace; font-size:11px; padding:10px; overflow-y:auto; z-index:9999; border-top:2px solid #444; }
   .log-err { color: #ff5555; font-weight:bold; }
 
   /* Yükleme Ekranı */
@@ -41,7 +38,7 @@
   
   /* Modal */
   .modal{position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none; align-items:center; justify-content:center;}
-  .modal-content{background:#fff;padding:20px;border-radius:10px;max-width:90%;max-height:80vh;overflow-y:auto; position:relative; width: 500px;}
+  .modal-content{background:#fff;margin:10% auto;padding:20px;border-radius:10px;max-width:90%;max-height:80vh;overflow-y:auto; position:relative; width: 500px;}
   .close{position:absolute; top:10px; right:15px; font-size:28px; font-weight:bold; cursor:pointer;}
   
   /* Sonuç Tablosu */
@@ -56,13 +53,7 @@
 
 <h1>Dikotik & CI Çalışması</h1>
 
-<div id="debugConsole">Sistem Hazır. Butona basın.</div>
-
-<div id="startOverlay">
-  <h2>Teste Hoşgeldiniz</h2>
-  <p>Ses motorunu başlatmak için aşağıdaki butona basınız.</p>
-  <button class="bigBtn" style="width:auto; padding:20px 40px; margin-top:20px;" onclick="startAudioEngine()">SİSTEMİ BAŞLAT 🔊</button>
-</div>
+<div id="debugConsole">Sistem Hazır.</div>
 
 <div id="loadingOverlay" class="hidden">
   <div class="loader"></div>
@@ -70,7 +61,7 @@
   <div id="loadingText" style="margin-top:10px; color:#666;">%0</div>
 </div>
 
-<div id="card_project" class="card hidden">
+<div id="card_project" class="card">
   <h3>Proje Kodu</h3>
   <select id="projectCode">
     <option value="">Seçiniz...</option>
@@ -199,7 +190,10 @@
 <div id="card_end" class="card hidden">
   <h3>Deney Tamamlandı ✅</h3>
   <p id="endLog" style="color:green; font-weight:bold;">Veriler gönderiliyor...</p>
-  <div id="resultTableContainer" style="overflow-x:auto; margin-top:20px;"></div>
+  <div style="margin-top:20px;">
+    <h4>Sonuçlarınız</h4>
+    <div id="resultTableContainer" style="overflow-x:auto;"></div>
+  </div>
 </div>
 
 <script>
@@ -211,7 +205,7 @@ function log(msg, type='info') {
     logBox.innerHTML = `<span style="color:${color}">[${time}] ${msg}</span><br>` + logBox.innerHTML;
     console.log(`[${type}] ${msg}`);
 }
-window.onerror = function(msg, url, line) { log("JS HATASI: " + msg + " (Satır " + line + ")", 'error'); };
+window.onerror = function(msg, url, line) { log("JS HATASI: " + msg + " (" + line + ")", 'error'); };
 
 // --- YARDIMCILAR ---
 const $id = (id) => document.getElementById(id);
@@ -236,41 +230,51 @@ const ALL_FILES = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-
 const UNIQUE_FILES = [...new Set(ALL_FILES)]; 
 const PATH = "./sounds/yeni/erkek/"; 
 
-// --- 1. SES MOTORUNU BAŞLAT (Global) ---
-function startAudioEngine() {
+// --- SES MOTORU (MERGER & CACHE BUSTING) ---
+function initAudio() {
     try {
         const AC = window.AudioContext || window.webkitAudioContext;
-        if(!AC) return alert("Tarayıcınız Web Audio API desteklemiyor!");
+        if(!AC) return alert("Tarayıcınız desteklemiyor!");
         
-        audioCtx = new AC();
-        audioCtx.resume().then(() => {
-            log("Ses Motoru Başladı! (State: " + audioCtx.state + ")");
-            // Boş ses çal
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            g.gain.value = 0.001;
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(0); osc.stop(0.1);
-            
-            // Ekran değiştir
-            document.getElementById('startOverlay').classList.add('hidden');
-            show('card_project');
-        });
-    } catch(e) { alert("Ses hatası: " + e.message); }
+        if(!audioCtx) audioCtx = new AC();
+        if(audioCtx.state === 'suspended') audioCtx.resume().then(()=>log("Ses Motoru Uyandı."));
+        
+    } catch(e) { log("Ses Hatası: " + e.message, 'error'); }
 }
 
-// --- 2. YÜKLEME (Global) ---
+function kickstartAudio() {
+    initAudio();
+    if(audioCtx) {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        g.gain.value = 0.001; 
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.start(0); osc.stop(0.01);
+    }
+}
+// Sayfaya tıklayınca motoru dürt
+document.body.addEventListener('click', kickstartAudio);
+document.body.addEventListener('touchstart', kickstartAudio);
+
+// YÜKLEME (CACHE BUSTING İLE)
 async function preloadAllSounds() {
-    document.getElementById('loadingOverlay').classList.remove('hidden');
+    initAudio();
+    $id('loadingOverlay').classList.remove('hidden');
     let loaded = 0;
+    
+    // Rastgele sayı (Cache Busting)
+    const cacheBuster = "?v=" + new Date().getTime();
     
     for (const filename of UNIQUE_FILES) {
         try {
-            const response = await fetch(PATH + filename);
+            // URL SONUNA TIMESTAMP EKLENDİ
+            const response = await fetch(PATH + filename + cacheBuster);
             if(!response.ok) throw new Error("HTTP " + response.status);
+            
             const arrayBuffer = await response.arrayBuffer();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
             audioBuffers[filename] = audioBuffer;
+            
             loaded++;
             const percent = Math.round((loaded/UNIQUE_FILES.length)*100);
             $id('loadingText').innerText = "%" + percent;
@@ -278,14 +282,13 @@ async function preloadAllSounds() {
             log("Yüklenemedi: " + filename, 'error');
         }
     }
-    document.getElementById('loadingOverlay').classList.add('hidden');
+    $id('loadingOverlay').classList.add('hidden');
     log("Tüm sesler yüklendi.");
 }
 
-// --- 3. AKIŞ FONKSİYONLARI (Hepsi Global) ---
-
+// --- AKIŞ ---
 function onProjectSelect() {
-    const p = document.getElementById('projectCode').value;
+    const p = $id('projectCode').value;
     if(!p) return alert("Seçiniz.");
     DATA.project = p;
     preloadAllSounds();
@@ -296,20 +299,19 @@ function showConsent() {
     show('card_consent');
     let txt = "Bu çalışma bilimsel amaçlarla yapılmaktadır.";
     if(DATA.project === 'CI') txt = "CI Zamanlama Çalışması Bilgilendirme...";
-    document.getElementById('consentTextPreview').innerText = txt;
-    document.getElementById('modalBody').innerHTML = txt;
+    $id('consentTextPreview').innerText = txt;
+    $id('modalBody').innerHTML = txt;
 }
 
-function openModal() { document.getElementById('consentModal').style.display='flex'; }
-function closeModal() { document.getElementById('consentModal').style.display='none'; }
+function openModal() { $id('consentModal').style.display='flex'; }
+function closeModal() { $id('consentModal').style.display='none'; }
 
 function saveInfo() {
-    const n = document.getElementById('inp_name').value.trim();
+    const n = $id('inp_name').value.trim();
     if(!n) return alert("İsim giriniz.");
     DATA.code = DATA.project + "_" + Math.floor(Math.random()*9999);
-    document.getElementById('codeDisplay').innerText = "KOD: " + DATA.code;
+    $id('codeDisplay').innerText = "KOD: " + DATA.code;
     
-    // Basit veri kaydı
     DATA.name = n;
     
     if(DATA.project === 'Esporcu') show('card_espor');
@@ -317,30 +319,27 @@ function saveInfo() {
     else show('card_hand'); 
 }
 
-function saveExtra(type) { show('card_hand'); }
+function saveExtra(t) { show('card_hand'); }
 
-// --- 4. SES OYNATMA (MERGER ILE) ---
+// --- SES OYNATMA (MERGER ILE) ---
 function playTestTone(pan) {
     if(!audioCtx) return;
     const osc = audioCtx.createOscillator();
     osc.frequency.value = 1500;
     
-    // Merger ile kanal dağıtımı
     const merger = audioCtx.createChannelMerger(2);
     const gainL = audioCtx.createGain();
     const gainR = audioCtx.createGain();
     
-    const volL = parseFloat(document.getElementById('vol_L').value) * 0.1; // Bip kısık
-    const volR = parseFloat(document.getElementById('vol_R').value) * 0.1;
+    const volL = parseFloat($id('vol_L').value) * 0.1;
+    const volR = parseFloat($id('vol_R').value) * 0.1;
     
-    // Eğer pan Sol ise Sol açık, Sağ kapalı
     gainL.gain.value = (pan === -1) ? volL : 0;
     gainR.gain.value = (pan === 1) ? volR : 0;
     
     osc.connect(gainL); osc.connect(gainR);
     gainL.connect(merger, 0, 0); 
     gainR.connect(merger, 0, 1);
-    
     merger.connect(audioCtx.destination);
     
     osc.start(); 
@@ -349,12 +348,12 @@ function playTestTone(pan) {
 }
 
 function startMainTest() {
-    DATA.volL = document.getElementById('vol_L').value;
-    DATA.volR = document.getElementById('vol_R').value;
+    DATA.volL = $id('vol_L').value;
+    DATA.volR = $id('vol_R').value;
     if(DATA.project === 'CI') initCITest(); else { sessionOrder = ['training', 'NF', ...shuffle(['FR','FL'])]; startDicoticSession(); }
 }
 
-/* --- 5. CI TEST --- */
+/* --- CI TEST --- */
 function initCITest() {
     ciQueue = [];
     const delays = [0, 0.003, 0.006, 0.009];
@@ -372,45 +371,35 @@ function playNextCI() {
     if(ciIndex >= ciQueue.length) { finishExp(); return; }
     isClickable = false;
     const t = ciQueue[ciIndex];
-    document.getElementById('ciInfoDisplay').innerHTML = `<strong>${t.type}</strong><br>Soru ${ciIndex+1}`;
+    $id('ciInfoDisplay').innerHTML = `<strong>${t.type}</strong><br>Soru ${ciIndex+1}`;
     document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 0.5);
 
-    // Başlangıç zamanı
-    const tStart = audioCtx.currentTime + 0.1;
-    let tL = tStart; let tR = tStart;
+    const tL = audioCtx.currentTime + 0.1;
+    let timeL = tL; let timeR = tL;
+    if(t.lead === 'Left') timeR += t.delay; else timeL += t.delay;
     
-    if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
-    
-    // Merger Setup
-    const merger = audioCtx.createChannelMerger(2);
+    // Sol ve Sağ kaynakları ayrı yönet
+    let srcL, srcR;
     const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
     const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR);
-    
+    const merger = audioCtx.createChannelMerger(2);
+
     if(t.type === 'tone') {
-        const sL = audioCtx.createOscillator(); sL.frequency.value = 1500;
-        const sR = audioCtx.createOscillator(); sR.frequency.value = 1500;
-        
-        sL.connect(gL); gL.connect(merger, 0, 0);
-        sR.connect(gR); gR.connect(merger, 0, 1);
-        
-        sL.start(tL); sL.stop(tL+0.5);
-        sR.start(tR); sR.stop(tR+0.5);
+        srcL = audioCtx.createOscillator(); srcL.frequency.value = 1500;
+        srcR = audioCtx.createOscillator(); srcR.frequency.value = 1500;
+        srcL.start(timeL); srcL.stop(timeL+0.5);
+        srcR.start(timeR); srcR.stop(timeR+0.5);
     } else {
         const buf = audioBuffers[t.file];
         if(!buf) return log("Buffer yok!", 'error');
-        
-        const sL = audioCtx.createBufferSource(); sL.buffer = buf;
-        const sR = audioCtx.createBufferSource(); sR.buffer = buf; // Mono-like kullanım için
-        
-        // Aslında burada stereo dosyanın kanallarını ayırmak daha doğru ama basitlik için:
-        // Dosyayı iki ayrı source gibi düşünüp zaman farkıyla oynatıyoruz.
-        
-        sL.connect(gL); gL.connect(merger, 0, 0);
-        sR.connect(gR); gR.connect(merger, 0, 1);
-        
-        sL.start(tL); sR.start(tR);
+        srcL = audioCtx.createBufferSource(); srcL.buffer = buf;
+        srcR = audioCtx.createBufferSource(); srcR.buffer = buf;
+        srcL.start(timeL); srcR.start(timeR);
     }
     
+    // Merger bağlantısı
+    srcL.connect(gL); gL.connect(merger, 0, 0);
+    srcR.connect(gR); gR.connect(merger, 0, 1);
     merger.connect(audioCtx.destination);
     
     setTimeout(() => {
@@ -427,14 +416,15 @@ function handleCIResponse(ans, btn) {
     else if(t.lead === ans) correct = "Correct";
     
     DATA.results.push({session:'CI_ITD', trial:ciIndex+1, type:t.type, stim:t.file||'Tone', delay:t.delay, lead:t.lead, resp:ans, isCorrect:correct});
-    btn.style.background = '#007AFF'; setTimeout(()=>{ btn.style.background = '#f2f2f7'; }, 200);
+    btn.style.background = '#007AFF'; setTimeout(()=>{ btn.style.background = '#ecf0f1'; }, 200);
     ciIndex++; setTimeout(playNextCI, 1500);
 }
 
-/* --- 6. DİKOTİK --- */
+/* --- DİKOTİK --- */
 function startDicoticBlocks() {
-    document.getElementById('btn_startSession').classList.add('hidden');
-    document.getElementById('dicoticTrials').classList.remove('hidden');
+    kickstartAudio();
+    $id('btn_startSession').classList.add('hidden');
+    $id('dicoticTrials').classList.remove('hidden');
     if(currentSession === 'training') dicoticQueue = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav"];
     else dicoticQueue = UNIQUE_FILES;
     dicoticIndex = 0; playNextDicotic();
@@ -443,16 +433,16 @@ function startDicoticBlocks() {
 function startDicoticSession() {
     if(sessionOrder.length === 0) { finishExp(); return; }
     currentSession = sessionOrder.shift();
-    document.getElementById('dicoticInfo').innerText = "Oturum: " + currentSession;
-    document.getElementById('btn_startSession').classList.remove('hidden');
-    document.getElementById('dicoticTrials').classList.add('hidden');
+    $id('dicoticInfo').innerText = "Oturum: " + currentSession;
+    $id('btn_startSession').classList.remove('hidden');
+    $id('dicoticTrials').classList.add('hidden');
     show('card_dicotic');
 }
 
 function playNextDicotic() {
     if(dicoticIndex >= dicoticQueue.length) { startDicoticSession(); return; }
     isClickable = false;
-    document.getElementById('dicoticInfo').innerText = (dicoticIndex+1) + " / " + dicoticQueue.length;
+    $id('dicoticInfo').innerText = (dicoticIndex+1) + " / " + dicoticQueue.length;
     
     const file = dicoticQueue[dicoticIndex];
     const buffer = audioBuffers[file];
@@ -461,7 +451,7 @@ function playNextDicotic() {
         const src = audioCtx.createBufferSource();
         src.buffer = buffer;
         const g = audioCtx.createGain();
-        g.gain.value = parseFloat(DATA.volL);
+        g.gain.value = parseFloat(DATA.volL); 
         src.connect(g).connect(audioCtx.destination);
         src.start(0);
     }
@@ -477,9 +467,10 @@ function handleDicoticResponse(val, btn) {
     dicoticIndex++; setTimeout(playNextDicotic, 1500);
 }
 
-/* --- 7. BİTİŞ --- */
+/* --- BİTİŞ --- */
 function finishExp() {
     show('card_end');
+    
     let html = '<table class="results-table"><thead><tr><th>Soru</th><th>Detay</th><th>Yanıt</th><th>Durum</th></tr></thead><tbody>';
     DATA.results.forEach(r => {
         let disp = r.isCorrect === "Correct" ? '<span class="res-correct">✅</span>' : (r.isCorrect === "Wrong" ? '<span class="res-wrong">❌</span>' : r.isCorrect);
@@ -488,13 +479,13 @@ function finishExp() {
         html += `<tr><td>${r.trial}</td><td>${info}</td><td>${r.resp}</td><td>${disp}</td></tr>`;
     });
     html += '</tbody></table>';
-    document.getElementById('resultTableContainer').innerHTML = html;
+    $id('resultTableContainer').innerHTML = html;
 
     const csv = JSON.stringify(DATA);
     if(window.emailjs) {
         emailjs.init("FLn2zMqKDGso3ePoO");
         emailjs.send("service_a8bnfmk", "template_r6sddff", { subject: DATA.code, message: csv })
-        .then(()=> document.getElementById('endLog').innerText = "Veriler Gönderildi!", (e)=> document.getElementById('endLog').innerText = "Hata: " + JSON.stringify(e));
+        .then(()=> $id('endLog').innerText = "Gönderildi!", (e)=> $id('endLog').innerText = "Hata: " + JSON.stringify(e));
     }
 }
 
