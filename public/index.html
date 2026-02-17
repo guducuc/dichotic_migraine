@@ -8,16 +8,17 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <style>
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f2f2f7; color:#1c1c1e; max-width: 700px; margin: auto; padding-bottom: 120px;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f2f2f7; color:#1c1c1e; max-width: 750px; margin: auto; padding-bottom: 120px;}
   h1{font-size:1.3rem; text-align:center; margin-bottom:20px; color:#000;}
   .card{background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); padding:20px; margin-bottom:20px;}
   .hidden{display:none !important;}
   
-  /* Form Elemanları */
+  /* Formlar */
   input[type="text"], input[type="number"], input[type="email"], input[type="tel"], select { 
-    width:100%; padding:12px; margin:8px 0; border:1px solid #d1d1d6; border-radius:8px; font-size:15px; box-sizing:border-box; background:#fff; 
+    width:100%; padding:12px; margin:8px 0; border:1px solid #d1d1d6; border-radius:8px; font-size:15px; background:#fff; box-sizing:border-box;
   }
-  input[type="radio"], input[type="checkbox"] { width: 18px; height: 18px; margin-right: 8px; vertical-align: middle; accent-color: #007AFF; }
+  /* Checkbox ve Radio - Mobilde kolay seçim için büyütüldü */
+  input[type="radio"], input[type="checkbox"] { width: 22px; height: 22px; margin: 0; vertical-align: middle; accent-color: #007AFF; cursor: pointer; }
   label { display: flex; align-items: center; margin-bottom: 8px; font-size: 15px; cursor:pointer; }
   
   /* Butonlar */
@@ -25,25 +26,24 @@
   .bigBtn:active { opacity: 0.7; }
   .btnGreen { background:#34C759; } .btnRed { background:#FF3B30; } 
 
-  /* Tablo Stilleri (El Tercihi) */
-  .grid-table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; }
-  .grid-table th { text-align:center; border-bottom:2px solid #ddd; padding:8px; background:#f9f9f9; }
-  .grid-table td { border-bottom:1px solid #eee; padding:12px 5px; vertical-align:middle; }
-  .grid-item-col { text-align: left; font-weight: 500; width: 40%; }
-  .grid-check-col { text-align: center; }
+  /* Tablo (El Tercihi) */
+  .grid-table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; table-layout: fixed; }
+  .grid-table th { text-align:center; border-bottom:2px solid #ddd; padding:10px 5px; background:#f9f9f9; font-size: 13px; }
+  .grid-table td { border-bottom:1px solid #eee; padding:12px 5px; vertical-align:middle; text-align: center; }
+  .grid-item-col { text-align: left !important; font-weight: 500; width: 40%; }
   
-  /* STAI Düzeni */
+  /* STAI */
   .stai-row { border-bottom: 1px solid #eee; padding: 15px 0; }
   .stai-question { font-weight: 600; margin-bottom: 10px; display: block; }
-  .stai-options { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-  .stai-options label { font-weight: normal; font-size: 14px; background: #f9f9f9; padding: 8px 12px; border-radius: 6px; border: 1px solid #eee; flex: 1; justify-content: center; }
+  .stai-options { display: flex; justify-content: space-between; gap: 5px; }
+  .stai-options label { font-weight: normal; font-size: 13px; background: #f9f9f9; padding: 10px 5px; border-radius: 6px; border: 1px solid #eee; flex: 1; justify-content: center; text-align: center; }
   
   /* CI Butonları */
   .respRow { display:flex; gap:10px; margin-top:20px; }
-  .respBtn { flex:1; padding:25px 5px; background:#f2f2f7; border-radius:12px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; color:#1c1c1e; user-select: none; font-size:14px; opacity: 0.5; pointer-events: none; transition: all 0.2s; }
+  .respBtn { flex:1; padding:25px 5px; background:#f2f2f7; border-radius:12px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; color:#1c1c1e; user-select: none; font-size:14px; opacity: 0.5; pointer-events: none; }
   .respBtn.active { opacity: 1; pointer-events: auto; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
   
-  /* Yükleme Ekranı */
+  /* Yükleme */
   #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index: 2000; display:flex; flex-direction:column; justify-content:center; align-items:center; }
   .loader { border: 4px solid #e5e5ea; border-top: 4px solid #007AFF; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -51,10 +51,8 @@
   /* Sonuç Tablosu */
   table.res-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
   table.res-table th, table.res-table td { border: 1px solid #ccc; padding: 5px; text-align: center; }
-  .correct { color: green; font-weight: bold; }
-  .wrong { color: red; font-weight: bold; }
+  .correct { color: green; font-weight: bold; } .wrong { color: red; font-weight: bold; }
   
-  /* Debug Konsolu */
   #debugConsole { display:none; }
 </style>
 </head>
@@ -79,7 +77,7 @@
   <select id="projectCode">
     <option value="">Lütfen seçiniz...</option>
     <option value="Migren">Migren (Dikotik)</option>
-    <option value="CI">CI</option>
+    <option value="CI">CI (Zamanlama)</option>
   </select>
   <button class="bigBtn" onclick="onProjectSelect()">Devam Et</button>
 </div>
@@ -102,38 +100,46 @@
 
 <div id="card_info" class="card hidden">
   <h3>Katılımcı Bilgileri</h3>
-  <input id="inp_name" type="text" placeholder="Ad (Sadece ilk 2 harf)">
-  <input id="inp_surname" type="text" placeholder="Soyad (Sadece ilk 2 harf)">
-  <input id="inp_age" type="number" placeholder="Yaş">
-  <input id="inp_email" type="email" placeholder="E-posta">
-  <input id="inp_phone" type="tel" placeholder="Telefon">
-  <input id="inp_race" type="text" placeholder="Doğum Yeri / Irk">
-  <input id="inp_lang" type="text" placeholder="Anadil">
+  <p style="font-size:12px; color:#666;">(*) işaretli alanlar zorunludur.</p>
+  <input id="inp_name" type="text" placeholder="Ad (Sadece ilk 2 harf) *">
+  <input id="inp_surname" type="text" placeholder="Soyad (Sadece ilk 2 harf) *">
+  <input id="inp_age" type="number" placeholder="Yaş *">
   <select id="inp_gender">
-    <option value="">Cinsiyet Seçiniz</option>
+    <option value="">Cinsiyet Seçiniz *</option>
     <option value="Kadın">Kadın</option>
     <option value="Erkek">Erkek</option>
     <option value="Diğer">Diğer</option>
   </select>
   <select id="inp_edu">
-    <option value="">Eğitim Durumu</option>
+    <option value="">Eğitim Durumu *</option>
     <option value="İlköğretim">İlköğretim</option>
     <option value="Lise">Lise</option>
     <option value="Lisans">Lisans</option>
     <option value="Yüksek Lisans">Yüksek Lisans</option>
     <option value="Doktora">Doktora</option>
   </select>
+  <input id="inp_email" type="email" placeholder="E-posta (Opsiyonel)">
+  <input id="inp_phone" type="tel" placeholder="Telefon (Opsiyonel)">
+  <input id="inp_race" type="text" placeholder="Doğum Yeri / Irk (Opsiyonel)">
+  <input id="inp_lang" type="text" placeholder="Anadil (Opsiyonel)">
+  
   <div id="codeDisplay" style="margin-top:10px; font-weight:bold; color:#007AFF;"></div>
   <button class="bigBtn" onclick="saveInfo()">Devam Et</button>
 </div>
 
 <div id="card_hand" class="card hidden">
   <h3>El Kullanım Tercihi</h3>
-  <p style="font-size:13px; color:#666; line-height:1.4;">Sağ veya sol elinizi hangi işlemlerde kullandığınızı bilmek istiyoruz. Lütfen her işlemde kullandığınız ele göre ‘sol’ veya ‘sağ’ hanesini işaretleyin. Mesela yazı yazarken, genellikle sağ ama ara sıra sol elinizi kullanıyorsanız, her iki elin altında yalnızca birer kutucuğu tıklayın. Daima sağ elinizi kullanıyorsanız, sağ el altındaki iki kutucuğu da işaretleyin. Diğer soruları aynı şekilde cevaplandırın. Her satırda mutlaka iki işaretleme olmalıdır.</p>
+  <p style="font-size:13px; color:#666; line-height:1.5; background:#f9f9f9; padding:10px; border-radius:8px;">
+    Sağ veya sol elinizi hangi işlemlerde kullandığınızı bilmek istiyoruz. Lütfen her işlemde kullandığınız ele göre ‘sol’ veya ‘sağ’ hanesini işaretleyin. <br><br>
+    - Mesela yazı yazarken, genellikle sağ ama ara sıra sol elinizi kullanıyorsanız, <b>her iki elin altında yalnızca birer kutucuğu tıklayın.</b> (Toplam 2 işaret)<br>
+    - Daima sağ elinizi kullanıyorsanız, <b>sağ el altındaki iki kutucuğu da işaretleyin.</b> (Toplam 2 işaret)<br><br>
+    <b>Her satırda mutlaka iki işaretleme olmalıdır.</b>
+  </p>
+  
   <table class="grid-table">
     <thead>
       <tr>
-        <th style="text-align:left;">İşlem</th>
+        <th class="grid-item-col">İşlem</th>
         <th colspan="2">SOL</th>
         <th colspan="2">SAĞ</th>
       </tr>
@@ -145,14 +151,14 @@
 
 <div id="card_stai" class="card hidden">
   <h3>Duygu Durum Anketi (STAI-TX1)</h3>
-  <p style="font-size:13px; color:#666;">Aşağıda kişilerin kendilerine ait duygularını anlatmada kullandıkları bir takım ifadeler verilmiştir. Her ifadeyi okuyun, sonra da nasıl hissettiğinizi ifadelerin sağ tarafındaki parantezlerden uygun olanını karalamak suretiyle belirtin. Doğru ya da yanlış cevap yoktur. Herhangi bir ifadenin üzerinde fazla zaman sarf etmeksizin anında nasıl hissettiğinizi gösteren cevabı işaretleyin.</p>
+  <p style="font-size:13px; color:#666;">Aşağıda kişilerin kendilerine ait duygularını anlatmada kullandıkları bir takım ifadeler verilmiştir. Her ifadeyi okuyun, sonra da nasıl hissettiğinizi en iyi yansıtan seçeneği işaretleyin.</p>
   <div id="staiContainer"></div> 
-  <button class="bigBtn" onclick="show('card_hearing')">Devam Et</button>
+  <button class="bigBtn" onclick="saveStaiData()">Devam Et</button>
 </div>
 
 <div id="card_hearing" class="card hidden">
   <h3>Ses Kontrolü</h3>
-  <p style="color:#FF3B30; font-weight:bold; font-size:14px; background:#fff0f0; padding:10px; border-radius:8px;">⚠️ iPhone/iPad: Yandaki "Sessiz" tuşunu kapatın.</p>
+  <p style="color:#FF3B30; font-weight:bold; font-size:14px; background:#fff0f0; padding:10px; border-radius:8px;">⚠️ DİKKAT: Teste başlamadan önce her iki kulaklığın çalıştığından emin olmalısınız.</p>
   
   <div style="background:#fff; padding:15px; border:1px solid #d1d1d6; border-radius:12px; margin:15px 0;">
     <label><b>Sol Kulak</b> Seviyesi</label>
@@ -166,7 +172,15 @@
     <button class="bigBtn" style="background:#5856D6; margin-top:5px; padding:10px;" onclick="playTestTone(1)">Sağ Bip 🔊</button>
   </div>
 
-  <button class="bigBtn" style="margin-top:30px; background:#FF9500;" onclick="startExperiment()">TESTİ BAŞLAT</button>
+  <div id="hearingError" style="color:red; font-weight:bold; margin-top:10px; display:none;">Lütfen her iki kulak için de test sesini oynatın!</div>
+  <button class="bigBtn" style="margin-top:20px; background:#FF9500;" onclick="startExperiment()">TESTİ BAŞLAT</button>
+</div>
+
+<div id="card_ci_break" class="card hidden" style="text-align:center;">
+  <h3>Bölüm Tamamlandı</h3>
+  <p style="font-size:16px; margin: 30px 0;">Bu bölümü başarıyla tamamladınız.</p>
+  <p>Diğer bölüme geçmek için lütfen aşağıdaki butona tıklayınız.</p>
+  <button class="bigBtn" onclick="continueCIBlock()">Sonraki Bölüme Geç</button>
 </div>
 
 <div id="card_ci" class="card hidden">
@@ -213,20 +227,28 @@
 </div>
 
 <script>
-/* --- 1. GLOBAL AYARLAR --- */
-const EMAIL_CONFIG = { userID: "FLn2zMqKDGso3ePoO", serviceID: "service_a8bnfmk", templateID: "template_7elc4wi" };
+/* ===============================================================
+   1. GLOBAL AYARLAR (BURADAKİ BİLGİLERİ KENDİNE GÖRE DÜZENLE)
+   =============================================================== */
+const EMAIL_CONFIG = { 
+    userID: "FLn2zMqKDGso3ePoO",        // EmailJS User ID
+    serviceID: "service_a8bnfmk",       // EmailJS Service ID
+    templateID: "template_7elc4wi"      // EmailJS Template ID (BURAYA YAZIN)
+};
 
-// Global Veri
+// Global Veri Saklama
 let DATA = { project: '', results: [] };
 let audioCtx = null;
 let audioBuffers = {}; 
 let ciQueue = []; let ciIndex = 0;
+let ciBlocks = []; let currentBlockIndex = 0;
 let dicoticQueue = []; let dicoticIndex = 0;
 let sessionOrder = []; let currentSession = '';
 let responseTimer = null; 
 let isClickable = false;
+let playedLeft = false, playedRight = false;
 
-// Dosyalar
+// Dosya Listeleri
 const SYLLABLES = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav"];
 const DICOTIC_MAIN = ["LBA-RKA.wav","LDA-RGA.wav","LPA-RBA.wav","LKA-RDA.wav","LBA-RBA.wav","LTA-RGA.wav","LBA-RDA.wav","LGA-RPA.wav","LDA-RKA.wav","LPA-RTA.wav","LKA-RKA.wav","LBA-RGA.wav","LKA-RPA.wav","LTA-RDA.wav","LGA-RKA.wav","LPA-RDA.wav","LGA-RGA.wav","LBA-RTA.wav","LGA-RDA.wav","LKA-RTA.wav","LDA-RPA.wav","LTA-RKA.wav","LPA-RPA.wav","LDA-RBA.wav","LGA-RTA.wav","LPA-RKA.wav","LTA-RBA.wav","LKA-RGA.wav","LTA-RTA.wav","LBA-RPA.wav","LDA-RTA.wav","LGA-RBA.wav","LTA-RPA.wav","LDA-RDA.wav","LKA-RBA.wav","LPA-RGA.wav"];
 const DICOTIC_TRAIN = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav"];
@@ -266,9 +288,8 @@ document.addEventListener('touchstart', kickAudio);
 async function preloadAllSounds() {
     document.getElementById('loadingOverlay').classList.remove('hidden');
     let loaded = 0;
-    const uniqueFiles = [...new Set(ALL_FILES)]; 
     
-    for (let f of uniqueFiles) {
+    for (let f of ALL_FILES) {
         try {
             const url = PATH + f + "?v=" + Math.floor(Math.random() * 99999);
             const resp = await fetch(url);
@@ -276,7 +297,7 @@ async function preloadAllSounds() {
             audioBuffers[f] = await audioCtx.decodeAudioData(buf);
             
             loaded++;
-            document.getElementById('loadingText').innerText = "%" + Math.round((loaded/uniqueFiles.length)*100);
+            document.getElementById('loadingText').innerText = "%" + Math.round((loaded/ALL_FILES.length)*100);
         } catch(e) {
             console.error("Yükleme hatası: " + f);
         }
@@ -302,17 +323,21 @@ function onProjectSelect() {
 function saveInfo() {
     const n = document.getElementById('inp_name').value.trim();
     const s = document.getElementById('inp_surname').value.trim();
-    if(!n || !s) return alert("Ad ve Soyad zorunludur.");
+    const a = document.getElementById('inp_age').value.trim();
+    const g = document.getElementById('inp_gender').value;
+    const e = document.getElementById('inp_edu').value;
+
+    if(!n || !s || !a || !g || !e) return alert("Lütfen (*) işaretli zorunlu alanları doldurunuz.");
     
     DATA.name = n; 
     DATA.surname = s;
-    DATA.age = document.getElementById('inp_age').value;
+    DATA.age = a;
+    DATA.gender = g;
+    DATA.edu = e;
     DATA.email = document.getElementById('inp_email').value;
     DATA.phone = document.getElementById('inp_phone').value;
     DATA.race = document.getElementById('inp_race').value;
     DATA.lang = document.getElementById('inp_lang').value;
-    DATA.gender = document.getElementById('inp_gender').value;
-    DATA.edu = document.getElementById('inp_edu').value;
     
     DATA.code = DATA.project + "_" + Math.floor(1000 + Math.random()*9000);
     document.getElementById('codeDisplay').innerText = "KODUNUZ: " + DATA.code;
@@ -338,17 +363,21 @@ function renderHandTable() {
 }
 
 function saveHandData() {
-    // El Verilerini Kaydet
     let handRes = [];
-    HAND_ITEMS.forEach((it, i) => {
+    for(let i=0; i<HAND_ITEMS.length; i++) {
         let l1 = document.querySelector(`input[name="h_${i}_L1"]`).checked ? 1 : 0;
         let l2 = document.querySelector(`input[name="h_${i}_L2"]`).checked ? 1 : 0;
         let r1 = document.querySelector(`input[name="h_${i}_R1"]`).checked ? 1 : 0;
         let r2 = document.querySelector(`input[name="h_${i}_R2"]`).checked ? 1 : 0;
-        handRes.push({item: it, L: l1+l2, R: r1+r2});
-    });
-    DATA.handData = handRes; // Veriye ekle
-
+        
+        let total = l1 + l2 + r1 + r2;
+        if(total !== 2) {
+            return alert(`"${HAND_ITEMS[i]}" satırında eksik veya fazla işaretleme var. Her satırda toplam 2 kutucuk işaretli olmalıdır.`);
+        }
+        
+        handRes.push({item: HAND_ITEMS[i], scoreL: l1+l2, scoreR: r1+r2});
+    }
+    DATA.handData = handRes;
     renderStai();
     show('card_stai');
 }
@@ -372,9 +401,24 @@ function renderStai() {
     });
 }
 
+function saveStaiData() {
+    let staiRes = {};
+    for(let i=0; i<20; i++) {
+        let el = document.querySelector(`input[name="s${i}"]:checked`);
+        if(!el) return alert("Lütfen tüm soruları yanıtlayınız.");
+        staiRes[`Q${i+1}`] = el.value;
+    }
+    DATA.staiData = staiRes;
+    show('card_hearing');
+}
+
 // İŞİTME
 function playTestTone(pan) {
     if(!audioCtx) return;
+    
+    if(pan === -1) playedLeft = true;
+    if(pan === 1) playedRight = true;
+
     const osc = audioCtx.createOscillator(); osc.frequency.value = 1500;
     const merger = audioCtx.createChannelMerger(2);
     const gL = audioCtx.createGain(); const gR = audioCtx.createGain();
@@ -389,13 +433,10 @@ function playTestTone(pan) {
 }
 
 function startExperiment() {
-    // STAI Verilerini Kaydet
-    let staiRes = {};
-    for(let i=0; i<20; i++) {
-        let el = document.querySelector(`input[name="s${i}"]:checked`);
-        staiRes[`Q${i+1}`] = el ? el.value : 0;
+    if(!playedLeft || !playedRight) {
+        document.getElementById('hearingError').style.display = 'block';
+        return;
     }
-    DATA.staiData = staiRes;
 
     DATA.volL = document.getElementById('vol_L').value;
     DATA.volR = document.getElementById('vol_R').value;
@@ -426,9 +467,7 @@ function pseudoShuffle(arr, key) {
 }
 
 function initCITest() {
-    ciQueue = [];
     const delays = [0, 0.003, 0.006, 0.009];
-    
     let tones = [];
     [1000, 1500, 2000].forEach(fr => {
         delays.forEach(d => {
@@ -447,19 +486,45 @@ function initCITest() {
     });
     syls = pseudoShuffle(syls, 'file');
     
-    ciQueue = [...tones, ...syls];
+    // Blokları Karıştır ve Başlat
+    ciBlocks = pseudoShuffle([tones, syls]); 
+    currentBlockIndex = 0;
+    loadNextCIBlock();
+}
+
+function loadNextCIBlock() {
+    if(currentBlockIndex >= ciBlocks.length) {
+        finishExp();
+        return;
+    }
+    
+    ciQueue = ciBlocks[currentBlockIndex];
     ciIndex = 0;
+    
+    if(currentBlockIndex > 0) {
+        show('card_ci_break');
+    } else {
+        show('card_ci');
+        setTimeout(playNextCI, 1000);
+    }
+}
+
+function continueCIBlock() {
     show('card_ci');
     setTimeout(playNextCI, 1000);
 }
 
 function playNextCI() {
     clearTimeout(responseTimer);
-    if(ciIndex >= ciQueue.length) { finishExp(); return; }
+    if(ciIndex >= ciQueue.length) { 
+        currentBlockIndex++;
+        loadNextCIBlock();
+        return; 
+    }
     
     isClickable = false;
     const t = ciQueue[ciIndex];
-    document.getElementById('ci_stage_title').innerText = t.type==='tone' ? "BÖLÜM 1: SAF SESLER" : "BÖLÜM 2: HECELER";
+    document.getElementById('ci_stage_title').innerText = t.type==='tone' ? "BÖLÜM: SAF SESLER" : "BÖLÜM: HECELER";
     document.getElementById('ci_stim_info').innerText = "ÇALINIYOR...";
     document.querySelectorAll('.ciBtn').forEach(b => b.classList.remove('active'));
 
@@ -588,10 +653,10 @@ function handleDicoticResponse(val, btn) {
 function finishExp() {
     show('card_end');
     
-    // 1. CSV METNİ OLUŞTUR
+    // CSV OLUŞTUR
     const csvContent = generateCSV(DATA.results);
     
-    // 2. TABLO GÖSTER
+    // TABLO GÖSTER
     let html = '<table class="res-table"><thead><tr><th>Soru</th><th>Uyaran</th><th>Yanıt</th><th>D</th></tr></thead><tbody>';
     DATA.results.forEach(r => {
         let cls = r.isCorrect === "Correct" ? "correct" : (r.isCorrect === "Wrong" ? "wrong" : "");
@@ -601,7 +666,7 @@ function finishExp() {
     html += '</tbody></table>';
     document.getElementById('resultTableContainer').innerHTML = html;
     
-    // 3. E-POSTA İÇERİĞİ HAZIRLA (CSV Dahil)
+    // E-POSTA İÇERİĞİ
     const emailBody = `
 KOD: ${DATA.code}
 AD SOYAD: ${DATA.name} ${DATA.surname}
@@ -637,5 +702,7 @@ function generateCSV(results) {
     return [headers, ...rows].join("\n");
 }
 </script>
+</body>
+</html>
 </body>
 </html>
