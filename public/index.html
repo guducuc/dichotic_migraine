@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Nöropsikolojik Değerlendirme</title>
+<title>Biyofizik Test Bataryası</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
@@ -56,11 +56,11 @@
 </head>
 <body>
 
-<h1>Nöropsikolojik Değerlendirme</h1>
+<h1>Biyofizik Test Bataryası</h1>
 
 <div id="startOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:3000; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; text-align:center;">
   <h2>Hoşgeldiniz</h2>
-  <p>Test başlamadan önce ses sistemini başlatmalıyız.</p>
+  <p>Test başlamadan önce ses sistemini başlatmalıyız. Lütfen aşağıdaki düğmeye tıklayınız.</p>
   <button class="bigBtn" style="width:auto; padding:15px 40px;" onclick="startAudioSystem()">BAŞLAT 🔊</button>
 </div>
 
@@ -156,7 +156,7 @@
 
 <div id="card_stai" class="card hidden">
   <h3>Duygu Durum Anketi (STAI-TX1)</h3>
-  <p style="font-size:13px; color:#666;">Aşağıdaki ifadeler için şu anki hissinizi işaretleyiniz.</p>
+  <p style="font-size:13px; color:#666;">Aşağıda kişilerin kendilerine ait duygularını anlatmada kullandıkları bir takım ifadeler verilmiştir. Her ifadeyi okuyun, sonra da nasıl hissettiğinizi ifadelerin sağ tarafındaki parantezlerden uygun olanını karalamak suretiyle belirtin. Doğru ya da yanlış cevap yoktur. Herhangi bir ifadenin üzerinde fazla zaman sarf etmeksizin anında nasıl hissettiğinizi gösteren cevabı işaretleyin.</p>
   <div id="staiContainer"></div> 
   <button class="bigBtn" onclick="saveStaiData()">Devam Et</button>
 </div>
