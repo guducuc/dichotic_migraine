@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Nöropsikolojik Test Bataryası (Final)</title>
+<title>Nöropsikolojik Değerlendirme (Final)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
@@ -197,10 +197,13 @@ const PATH = "./sounds/yeni/erkek/";
 
 // Loglama
 const logBox = document.getElementById('debugConsole');
-function log(msg) { logBox.innerHTML = msg; console.log(msg); }
-window.onerror = (msg) => log("ERR: " + msg);
+function log(msg) {
+    console.log(msg);
+    logBox.innerHTML = `> ${msg}<br>` + logBox.innerHTML;
+}
+window.onerror = (msg, url, line) => log("ERROR: " + msg + " (" + line + ")");
 
-/* --- 2. SES MOTORU (MERGER & KICKSTART) --- */
+/* --- 2. SES MOTORU (Global) --- */
 function startAudioSystem() {
     try {
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -208,44 +211,51 @@ function startAudioSystem() {
         
         audioCtx = new AC();
         audioCtx.resume().then(() => {
-            // Boş ses çal ve motoru ısıt
+            // Boş bir ses çal ve motoru ısıt
             const osc = audioCtx.createOscillator();
             const g = audioCtx.createGain();
             g.gain.value = 0.001;
             osc.connect(g); g.connect(audioCtx.destination);
             osc.start(0); osc.stop(0.1);
             
+            log("Ses motoru başlatıldı.");
             document.getElementById('startOverlay').classList.add('hidden');
             show('card_project');
         });
     } catch(e) { alert("Ses hatası: " + e); }
 }
 
-function kickAudio() { if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); }
+function kickAudio() {
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
 document.addEventListener('click', kickAudio);
 document.addEventListener('touchstart', kickAudio);
 
-// ÖN YÜKLEME (CACHE BUSTING)
-async function preloadSounds() {
+// Ses Dosyalarını Yükle
+async function preloadAllSounds() {
     document.getElementById('loadingOverlay').classList.remove('hidden');
     let loaded = 0;
     
-    for (let f of ALL_FILES) {
+    const uniqueFiles = [...new Set(ALL_FILES)]; 
+    
+    for (let f of uniqueFiles) {
         try {
             const url = PATH + f + "?v=" + Math.floor(Math.random() * 99999);
             const resp = await fetch(url);
-            if(!resp.ok) throw new Error("HTTP");
             const buf = await resp.arrayBuffer();
             audioBuffers[f] = await audioCtx.decodeAudioData(buf);
             
             loaded++;
-            document.getElementById('loadingText').innerText = "%" + Math.round((loaded/ALL_FILES.length)*100);
-        } catch(e) { log("Yükleme Hatası: " + f); }
+            document.getElementById('loadingText').innerText = "%" + Math.round((loaded/uniqueFiles.length)*100);
+        } catch(e) {
+            log("Yükleme hatası: " + f);
+        }
     }
     document.getElementById('loadingOverlay').classList.add('hidden');
+    log("Sesler yüklendi.");
 }
 
-/* --- 3. AKIŞ FONKSİYONLARI --- */
+/* --- 3. AKIŞ YÖNETİMİ --- */
 function show(id) {
     document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
@@ -256,7 +266,7 @@ function onProjectSelect() {
     const p = document.getElementById('projectCode').value;
     if(!p) return alert("Proje seçiniz.");
     DATA.project = p;
-    preloadSounds(); // Hemen yüklemeye başla
+    preloadAllSounds(); // Hemen yüklemeye başla
     show('card_participation');
 }
 
@@ -268,6 +278,7 @@ function saveInfo() {
     DATA.surname = document.getElementById('inp_surname').value;
     DATA.age = document.getElementById('inp_age').value;
     DATA.email = document.getElementById('inp_email').value;
+    DATA.phone = document.getElementById('inp_phone').value;
     DATA.code = DATA.project + "_" + Math.floor(1000 + Math.random()*9000);
     document.getElementById('codeDisplay').innerText = "KOD: " + DATA.code;
     
@@ -275,28 +286,31 @@ function saveInfo() {
     show('card_hand');
 }
 
-// EL TABLOSU
-const HAND_ITEMS = ["Yazmak","Çizmek","Taş Atmak","Makas","Diş Fırçası","Bıçak","Kaşık","Süpürge","Çakmak","Kutu Açmak"];
+/* --- 4. ÖLÇEKLER --- */
+const HAND_ITEMS = ["Yazmak","Çizmek","Taş Atmak","Makas kullanmak","Diş fırçası","Bıçak (Peynir keserken vb.)","Kaşık","Süpürge (üstteki el)","Kibrit çakmak (çakan el)","Kutu kapağı açmak (tutan el)"];
+
 function renderHandTable() {
-    const t = document.getElementById('handTableBody'); t.innerHTML="";
-    HAND_ITEMS.forEach((it, i) => {
-        t.innerHTML += `<tr><td>${it}</td><td style="text-align:center"><input type="checkbox" name="hl${i}"></td><td style="text-align:center"><input type="checkbox" name="hr${i}"></td></tr>`;
+    const tbody = document.getElementById('handTableBody');
+    tbody.innerHTML = "";
+    HAND_ITEMS.forEach((item, i) => {
+        tbody.innerHTML += `<tr><td>${item}</td><td style="text-align:center"><input type="checkbox" name="h_l_${i}"></td><td style="text-align:center"><input type="checkbox" name="h_r_${i}"></td></tr>`;
     });
 }
-function saveHandData() { 
-    renderStai(); 
-    show('card_stai'); 
+
+function saveHandData() {
+    renderStai();
+    show('card_stai');
 }
 
-// STAI
 function renderStai() {
-    const d = document.getElementById('staiContainer'); d.innerHTML = "";
+    const div = document.getElementById('staiContainer');
+    div.innerHTML = ""; 
     /* --- STAI SORULARI BURAYA --- */
-    const qs = ["Şu anda sakinim","Kendimi emniyette hissediyorum","Şu anda sinirlerim gergin","Pişmanlık duygusu içindeyim","Şu anda huzur içindeyim","Şu anda hiç keyfim yok","Başıma geleceklerden endişe ediyorum","Kendimi dinlenmiş hissediyorum","Şu anda kaygılıyım","Kendimi rahat hissediyorum","Kendime güvenim var","Şu anda asabım bozuk","Çok sinirliyim","Sinirlerimin çok gergin olduğunu hissediyorum","Kendimi rahatlamış hissediyorum","Şu anda halimden memnunum","Şu anda endişeliyim","Heyecandan kendimi şaşkına dönmüş hissediyorum","Şu anda sevinçliyim","Şu anda keyfim yerinde"]; // Soruları buraya yapıştırın
+    const qs = ["Şu anda sakinim","Kendimi emniyette hissediyorum","Şu anda sinirlerim gergin","Pişmanlık duygusu içindeyim","Şu anda huzur içindeyim","Şu anda hiç keyfim yok","Başıma geleceklerden endişe ediyorum","Kendimi dinlenmiş hissediyorum","Şu anda kaygılıyım","Kendimi rahat hissediyorum","Kendime güvenim var","Şu anda asabım bozuk","Çok sinirliyim","Sinirlerimin çok gergin olduğunu hissediyorum","Kendimi rahatlamış hissediyorum","Şu anda halimden memnunum","Şu anda endişeliyim","Heyecandan kendimi şaşkına dönmüş hissediyorum","Şu anda sevinçliyim","Şu anda keyfim yerinde"]; // SORULARI YAPIŞTIRIN
     
-    if(qs.length===0) d.innerHTML = "<p>Sorular yüklenmedi.</p>";
+    if(qs.length===0) div.innerHTML = "<p>Sorular yüklenmedi. Devam edebilirsiniz.</p>";
     qs.forEach((q,i) => {
-        d.innerHTML += `<div style="border-bottom:1px solid #eee; padding:5px 0;"><p>${i+1}. ${q}</p><label><input type="radio" name="s${i}" value="1">Hiç</label><label><input type="radio" name="s${i}" value="2">Biraz</label><label><input type="radio" name="s${i}" value="3">Çok</label><label><input type="radio" name="s${i}" value="4">Tamamıyla</label></div>`;
+        div.innerHTML += `<div style="border-bottom:1px solid #eee; padding:5px 0;"><p>${i+1}. ${q}</p><label><input type="radio" name="s${i}" value="1">Hiç</label><label><input type="radio" name="s${i}" value="2">Biraz</label><label><input type="radio" name="s${i}" value="3">Çok</label><label><input type="radio" name="s${i}" value="4">Tamamıyla</label></div>`;
     });
 }
 
@@ -324,48 +338,21 @@ function startExperiment() {
     DATA.volL = document.getElementById('vol_L').value;
     DATA.volR = document.getElementById('vol_R').value;
     
-    if(DATA.project === 'CI') initCITest();
-    else if(DATA.project === 'Migren') {
-        sessionOrder = ['Training', 'NF', ...pseudoShuffle(['FR','FL'])]; // Migren Sıralaması
+    if(DATA.project === 'CI') {
+        initCITest();
+    } else if(DATA.project === 'Migren') {
+        sessionOrder = ['Training', 'NF', ...pseudoShuffle(['FR','FL'])];
         startDicoticSession();
     }
 }
 
-/* --- CI TEST (Pseudo-Random & Bölümler) --- */
-function initCITest() {
-    ciQueue = [];
-    const delays = [0, 0.003, 0.006, 0.009];
-    
-    // Tones (1000, 1500, 2000)
-    let tones = [];
-    [1000, 1500, 2000].forEach(fr => {
-        delays.forEach(d => {
-            tones.push({type:'tone', freq:fr, delay:d, lead:'Left'});
-            if(d>0) tones.push({type:'tone', freq:fr, delay:d, lead:'Right'});
-        });
-    });
-    tones = pseudoShuffle(tones, 'freq'); // Peş peşe aynı frekans gelmesin
-    
-    // Heceler
-    let syls = [];
-    SYLLABLES.forEach(f => {
-        delays.forEach(d => {
-            syls.push({type:'speech', file:f, delay:d, lead:'Left'});
-            if(d>0) syls.push({type:'speech', file:f, delay:d, lead:'Right'});
-        });
-    });
-    syls = pseudoShuffle(syls, 'file'); // Peş peşe aynı hece gelmesin
-    
-    ciQueue = [...tones, ...syls];
-    ciIndex = 0;
-    show('card_ci');
-    setTimeout(playNextCI, 1000);
-}
-
+/* --- 6. CI TEST --- */
 function pseudoShuffle(arr, key) {
-    // Basit karıştırma
+    if(!key) { 
+        for(let i=arr.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+        return arr;
+    }
     for(let i=arr.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
-    // Çakışma düzeltme
     for(let i=1; i<arr.length; i++) {
         if(arr[i][key] === arr[i-1][key]) {
             for(let j=i+1; j<arr.length; j++) {
@@ -376,11 +363,38 @@ function pseudoShuffle(arr, key) {
     return arr;
 }
 
+function initCITest() {
+    ciQueue = [];
+    const delays = [0, 0.003, 0.006, 0.009];
+    
+    let tones = [];
+    [1000, 1500, 2000].forEach(fr => {
+        delays.forEach(d => {
+            tones.push({type:'tone', freq:fr, delay:d, lead:'Left'});
+            if(d>0) tones.push({type:'tone', freq:fr, delay:d, lead:'Right'});
+        });
+    });
+    tones = pseudoShuffle(tones, 'freq');
+    
+    let syls = [];
+    SYLLABLES.forEach(f => {
+        delays.forEach(d => {
+            syls.push({type:'speech', file:f, delay:d, lead:'Left'});
+            if(d>0) syls.push({type:'speech', file:f, delay:d, lead:'Right'});
+        });
+    });
+    syls = pseudoShuffle(syls, 'file');
+    
+    ciQueue = [...tones, ...syls];
+    ciIndex = 0;
+    show('card_ci');
+    setTimeout(playNextCI, 1000);
+}
+
 function playNextCI() {
     if(ciIndex >= ciQueue.length) { finishExp(); return; }
     isClickable = false;
     const t = ciQueue[ciIndex];
-    
     document.getElementById('ci_stage_title').innerText = t.type==='tone' ? "BÖLÜM 1: SAF SESLER" : "BÖLÜM 2: HECELER";
     document.getElementById('ci_stim_info').innerText = "ÇALINIYOR...";
     document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 0.5);
@@ -417,21 +431,16 @@ function playToneITD(t) {
 function playSpeechITD(t) {
     const buf = audioBuffers[t.file];
     if(!buf) return;
-    
     const merger = audioCtx.createChannelMerger(2);
     const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
     const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR);
-    
     const sL = audioCtx.createBufferSource(); sL.buffer = buf;
     const sR = audioCtx.createBufferSource(); sR.buffer = buf;
-    
     const tStart = audioCtx.currentTime + 0.1;
     let tL = tStart, tR = tStart;
     if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
-    
     sL.connect(gL); gL.connect(merger, 0, 0);
     sR.connect(gR); gR.connect(merger, 0, 1);
-    
     merger.connect(audioCtx.destination);
     sL.start(tL); sR.start(tR);
 }
@@ -442,7 +451,6 @@ function handleCIResponse(ans, btn) {
     let correct = "Wrong";
     if(t.delay === 0 && ans === "Equal") correct = "Correct";
     else if(t.lead === ans) correct = "Correct";
-    
     DATA.results.push({trial:ciIndex+1, section:'CI', type:t.type, stim:t.freq||t.file, delay:t.delay, lead:t.lead, resp:ans, isCorrect:correct});
     ciIndex++; setTimeout(playNextCI, 1000);
 }
@@ -451,46 +459,36 @@ function handleCIResponse(ans, btn) {
 function startDicoticSession() {
     if(sessionOrder.length === 0) { finishExp(); return; }
     currentSession = sessionOrder.shift();
-    
     let instr = "";
     if(currentSession === 'Training') instr = "Eğitim Bölümü: Duyduğunuzu seçin.";
     if(currentSession === 'NF') instr = "Serbest Dinleme (NF): En net duyduğunuzu seçin.";
     if(currentSession === 'FR') instr = "Sağ Odaklı (FR): Sadece SAĞ kulağınıza odaklanın.";
     if(currentSession === 'FL') instr = "Sol Odaklı (FL): Sadece SOL kulağınıza odaklanın.";
-    
     document.getElementById('dicoticInfo').innerText = instr;
     document.getElementById('dicoticInstruction').innerText = "Hazır olduğunuzda Başla butonuna basın.";
     document.getElementById('dicoticStartBtnArea').classList.remove('hidden');
     document.getElementById('dicoticTrials').classList.add('hidden');
-    
     show('card_dicotic');
 }
 
 function startDicoticBlock() {
     document.getElementById('dicoticStartBtnArea').classList.add('hidden');
     document.getElementById('dicoticTrials').classList.remove('hidden');
-    
     if(currentSession === 'Training') dicoticQueue = DICOTIC_TRAIN;
     else dicoticQueue = DICOTIC_MAIN;
-    
-    dicoticIndex = 0;
-    playNextDicotic();
+    dicoticIndex = 0; playNextDicotic();
 }
 
 function playNextDicotic() {
     if(dicoticIndex >= dicoticQueue.length) { startDicoticSession(); return; }
     isClickable = false;
-    
     const file = dicoticQueue[dicoticIndex];
     const buf = audioBuffers[file];
-    
     if(buf) {
         const src = audioCtx.createBufferSource();
         src.buffer = buf;
-        
-        // Stereo Gain (Merger yok, çünkü dosya zaten stereo)
         const g = audioCtx.createGain();
-        g.gain.value = (parseFloat(DATA.volL) + parseFloat(DATA.volR)) / 2; // Ort. ses
+        g.gain.value = (parseFloat(DATA.volL) + parseFloat(DATA.volR)) / 2;
         src.connect(g).connect(audioCtx.destination);
         src.start(0);
     }
@@ -502,18 +500,14 @@ function handleDicoticResponse(val, btn) {
     const file = dicoticQueue[dicoticIndex];
     const match = file.includes(val) ? "Uyumlu" : "-";
     DATA.results.push({ session: currentSession, trial: dicoticIndex+1, stim:file, resp: val, isCorrect: match });
-    
     btn.style.background = '#007AFF'; btn.style.color = '#fff';
     setTimeout(()=>{ btn.style.background = '#f2f2f7'; btn.style.color = '#1c1c1e'; }, 200);
-    
     dicoticIndex++; setTimeout(playNextDicotic, 1500);
 }
 
 /* --- BİTİŞ --- */
 function finishExp() {
     show('card_end');
-    
-    // Tablo
     let html = '<table class="results-table"><thead><tr><th>Soru</th><th>Uyaran</th><th>Yanıt</th><th>D</th></tr></thead><tbody>';
     DATA.results.forEach(r => {
         let cls = r.isCorrect === "Correct" ? "res-correct" : (r.isCorrect === "Wrong" ? "res-wrong" : "");
@@ -522,7 +516,7 @@ function finishExp() {
     });
     html += '</tbody></table>';
     document.getElementById('resultTableContainer').innerHTML = html;
-
+    
     const csv = JSON.stringify(DATA);
     if(window.emailjs) {
         emailjs.init(EMAIL_CONFIG.userID);
@@ -530,8 +524,6 @@ function finishExp() {
         .then(()=> document.getElementById('endLog').innerText = "Gönderildi!", (e)=> document.getElementById('endLog').innerText = "Hata: " + JSON.stringify(e));
     }
 }
-
-});
 </script>
 </body>
 </html>
