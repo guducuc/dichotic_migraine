@@ -3,178 +3,156 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Dikotik & CI (Cache Fix)</title>
+<title>Nöropsikolojik Test Bataryası (Final)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <style>
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f0f2f5; color:#333; max-width: 600px; margin: auto; padding-bottom: 150px;}
-  h1{font-size:1.3rem; text-align:center; margin-bottom:20px; color:#2c3e50;}
-  .card{background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.1); padding:20px; margin-bottom:15px;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f2f2f7; color:#1c1c1e; max-width: 650px; margin: auto; padding-bottom: 120px;}
+  h1{font-size:1.3rem; text-align:center; margin-bottom:20px; color:#000;}
+  .card{background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); padding:20px; margin-bottom:20px;}
   .hidden{display:none !important;}
   
-  input, select { width:100%; padding:14px; margin:8px 0; border:1px solid #ccc; border-radius:8px; font-size:16px; box-sizing:border-box; }
-  input[type="radio"], input[type="checkbox"] { width: 22px; height: 22px; margin-right: 10px; vertical-align: bottom; }
+  input, select { width:100%; padding:14px; margin:8px 0; border:1px solid #d1d1d6; border-radius:10px; font-size:16px; box-sizing:border-box; background:#fff; }
+  input[type="radio"], input[type="checkbox"] { width: 22px; height: 22px; margin-right: 10px; vertical-align: middle; accent-color: #007AFF; }
   label { display: flex; align-items: center; margin-bottom: 12px; font-size: 15px; cursor:pointer; }
   
-  .bigBtn { width:100%; padding:16px; border:none; border-radius:8px; background:#3498db; color:white; font-size:16px; font-weight:bold; cursor:pointer; margin-top:10px; transition: background 0.2s; }
-  .bigBtn:active { background:#2980b9; transform:scale(0.98); }
-  .btnGreen { background:#27ae60; } .btnRed { background:#c0392b; }
+  .bigBtn { width:100%; padding:16px; border:none; border-radius:12px; background:#007AFF; color:white; font-size:16px; font-weight:600; cursor:pointer; margin-top:15px; transition: opacity 0.2s; }
+  .bigBtn:active { opacity: 0.7; }
+  .btnGreen { background:#34C759; } .btnRed { background:#FF3B30; }
 
-  /* Debug Konsolu */
-  #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:120px; background:#000; color:#0f0; font-family:monospace; font-size:11px; padding:10px; overflow-y:auto; z-index:9999; border-top:2px solid #444; }
-  .log-err { color: #ff5555; font-weight:bold; }
-
+  /* CI Butonları */
+  .respRow { display:flex; gap:10px; margin-top:20px; }
+  .respBtn { flex:1; padding:25px 5px; background:#f2f2f7; border-radius:12px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; color:#1c1c1e; user-select: none; font-size:14px; }
+  
   /* Yükleme Ekranı */
   #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index: 2000; display:flex; flex-direction:column; justify-content:center; align-items:center; }
-  .loader { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+  .loader { border: 4px solid #e5e5ea; border-top: 4px solid #007AFF; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-  .respRow { display:flex; gap:8px; margin-top:15px; }
-  .respBtn { flex:1; padding:20px 5px; background:#ecf0f1; border-radius:8px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #bdc3c7; color:#2c3e50; user-select: none; }
-  .respBtn:active, .respBtn-active { background:#2c3e50 !important; color:#fff !important; }
-  
-  #ciInfoDisplay { background: #fff3cd; color: #856404; padding: 15px; text-align: center; border-radius: 6px; margin-bottom: 15px; font-weight: bold; border: 1px solid #ffeeba; }
-  
-  /* Modal */
-  .modal{position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none; align-items:center; justify-content:center;}
-  .modal-content{background:#fff;margin:10% auto;padding:20px;border-radius:10px;max-width:90%;max-height:80vh;overflow-y:auto; position:relative; width: 500px;}
-  .close{position:absolute; top:10px; right:15px; font-size:28px; font-weight:bold; cursor:pointer;}
-  
-  /* Sonuç Tablosu */
-  table.results-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-  table.results-table th, table.results-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-  table.results-table th { background-color: #f2f2f2; font-weight: bold; }
-  .res-correct { color: green; font-weight: bold; }
-  .res-wrong { color: red; font-weight: bold; }
+  /* Tablo */
+  table.results-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+  table.results-table th, table.results-table td { border: 1px solid #d1d1d6; padding: 8px; text-align: center; }
+  table.results-table th { background-color: #f2f2f7; font-weight: bold; }
+  .res-correct { color: #34C759; font-weight: bold; } .res-wrong { color: #FF3B30; font-weight: bold; }
+
+  /* Debug Konsolu */
+  #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:30px; background:#1c1c1e; color:#30d158; font-family:monospace; font-size:10px; padding:5px; z-index:9999; border-top:1px solid #333; opacity:0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 20px;}
 </style>
 </head>
 <body>
 
-<h1>Dikotik & CI Çalışması</h1>
+<h1>Nöropsikolojik Değerlendirme</h1>
 
 <div id="debugConsole">Sistem Hazır.</div>
+
+<div id="startOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:3000; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; text-align:center;">
+  <h2>Hoşgeldiniz</h2>
+  <p>Test başlamadan önce ses sistemini başlatmalıyız.</p>
+  <button class="bigBtn" style="width:auto; padding:15px 40px;" onclick="startAudioSystem()">BAŞLAT 🔊</button>
+</div>
 
 <div id="loadingOverlay" class="hidden">
   <div class="loader"></div>
   <div style="font-weight:bold; font-size:18px;">Sesler Yükleniyor...</div>
-  <div id="loadingText" style="margin-top:10px; color:#666;">%0</div>
+  <div id="loadingText" style="margin-top:10px; color:#8e8e93;">%0</div>
+  <div id="loadingError" style="margin-top:10px; color:red; font-size:12px;"></div>
 </div>
 
-<div id="card_project" class="card">
-  <h3>Proje Kodu</h3>
+<div id="card_project" class="card hidden">
+  <h3>Proje Seçimi</h3>
   <select id="projectCode">
-    <option value="">Seçiniz...</option>
+    <option value="">Lütfen seçiniz...</option>
+    <option value="Migren">Migren (Dikotik)</option>
     <option value="CI">CI (Zamanlama)</option>
-    <option value="Esporcu">Esporcu</option>
-    <option value="Sporcu">Sporcu</option>
-    <option value="OCM">OCM</option>
-    <option value="OykuTez">Öykü Tez</option>
   </select>
-  <button class="bigBtn" onclick="onProjectSelect()">Devam</button>
+  <button class="bigBtn" onclick="onProjectSelect()">Devam Et</button>
 </div>
 
 <div id="card_participation" class="card hidden">
   <h3>Katılım Durumu</h3>
   <label><input type="radio" name="partType" value="1" checked> İlk kez katılıyorum</label>
   <label><input type="radio" name="partType" value="2"> Daha önce katıldım</label>
-  <button class="bigBtn" onclick="showConsent()">Devam</button>
+  <button class="bigBtn" onclick="show('card_consent')">Devam Et</button>
 </div>
 
 <div id="card_consent" class="card hidden">
-  <h3>Onam Formu</h3>
-  <button class="bigBtn" style="background:#7f8c8d; margin-bottom:10px;" onclick="openModal()">Onam Formunu Oku</button>
-  <div id="consentTextPreview" style="font-size:13px; color:#666; margin-bottom:10px;"></div>
+  <h3>Aydınlatılmış Onam</h3>
+  <div id="consentTextPreview" style="height:150px; overflow-y:scroll; background:#f9f9f9; padding:10px; border:1px solid #eee; margin-bottom:15px; font-size:13px;"></div>
   <div style="display:flex; gap:10px;">
-    <button class="bigBtn btnGreen" onclick="show('card_info')">Kabul Ediyorum</button>
-    <button class="bigBtn btnRed" onclick="alert('Reddedildi.')">Etmiyorum</button>
-  </div>
-</div>
-
-<div id="consentModal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <div id="modalBody"></div>
+    <button class="bigBtn btnGreen" onclick="show('card_info')">Onaylıyorum</button>
+    <button class="bigBtn btnRed" onclick="alert('Katılım reddedildi.')">Red</button>
   </div>
 </div>
 
 <div id="card_info" class="card hidden">
-  <h3>Kişisel Bilgiler</h3>
-  <input id="inp_name" placeholder="Ad (İlk 2 harf)">
-  <input id="inp_surname" placeholder="Soyad (İlk 2 harf)">
+  <h3>Katılımcı Bilgileri</h3>
+  <input id="inp_name" placeholder="Ad (Sadece ilk 2 harf)">
+  <input id="inp_surname" placeholder="Soyad (Sadece ilk 2 harf)">
   <input id="inp_age" type="number" placeholder="Yaş">
   <input id="inp_email" type="email" placeholder="E-posta">
   <input id="inp_phone" type="tel" placeholder="Telefon">
-  <input id="inp_race" placeholder="Doğum Yeri/Irk">
-  <input id="inp_lang" placeholder="Anadil">
-  <select id="inp_gender"><option value="">Cinsiyet</option><option>Kadın</option><option>Erkek</option><option>Diğer</option></select>
-  <div id="codeDisplay" style="margin-top:10px; font-weight:bold; color:#2c3e50;"></div>
-  <button class="bigBtn" onclick="saveInfo()">Devam</button>
-</div>
-
-<div id="card_espor" class="card hidden">
-  <h3>Esporcu Bilgileri</h3>
-  <div class="question-group"><span class="question-title">Oyun Türü</span>
-    <label><input type="radio" name="gameType" value="FPS"> FPS</label>
-    <label><input type="radio" name="gameType" value="MOBA"> MOBA</label>
-    <label><input type="radio" name="gameType" value="Diğer"> Diğer</label>
-  </div>
-  <input id="esp_years" type="number" placeholder="Kaç yıldır oynuyorsunuz?">
-  <button class="bigBtn" onclick="saveExtra('espor')">Devam</button>
-</div>
-
-<div id="card_spor" class="card hidden">
-  <h3>Sporcu Bilgileri</h3>
-  <input id="sp_years" type="number" placeholder="Kaç yıldır spor yapıyorsunuz?">
-  <div class="question-group"><span class="question-title">Pozisyon</span>
-    <label><input type="radio" name="pos" value="Guard"> Guard</label>
-    <label><input type="radio" name="pos" value="Forvet"> Forvet</label>
-    <label><input type="radio" name="pos" value="Pivot"> Pivot</label>
-  </div>
-  <button class="bigBtn" onclick="saveExtra('spor')">Devam</button>
+  <select id="inp_gender"><option value="">Cinsiyet Seçiniz</option><option>Kadın</option><option>Erkek</option><option>Diğer</option></select>
+  <div id="codeDisplay" style="margin-top:10px; font-weight:bold; color:#007AFF;"></div>
+  <button class="bigBtn" onclick="saveInfo()">Devam Et</button>
 </div>
 
 <div id="card_hand" class="card hidden">
-  <h3>El Kullanımı</h3>
-  <p style="font-size:13px; color:#666;">(Bu bölüm şu an pasiftir, devam ediniz.)</p>
-  <button class="bigBtn" onclick="show('card_stai')">Devam</button>
+  <h3>El Kullanım Tercihi</h3>
+  <p style="font-size:13px; color:#666;">Sağ veya sol elinizi hangi işlemlerde kullandığınızı bilmek istiyoruz. Lütfen her işlemde kullandığınız ele göre ‘sol’ veya ‘sağ’ hanesini işaretleyin. Mesela yazı yazarken, genellikle sağ ama ara sıra sol elinizi kullanıyorsanız, her iki elin altında yalnızca birer kutucuğu tıklayın. Daima sağ elinizi kullanıyorsanız, sağ el altındaki iki kutucuğu da işaretleyin. Diğer soruları aynı şekilde cevaplandırın. Her satırda mutlaka iki işaretleme olmalıdır.</p>
+  <table style="width:100%; border-collapse:collapse; font-size:14px;">
+    <thead><tr><th style="text-align:left;">İşlem</th><th>Sol</th><th>Sağ</th></tr></thead>
+    <tbody id="handTableBody"></tbody>
+  </table>
+  <button class="bigBtn" onclick="saveHandData()">Devam Et</button>
 </div>
 
 <div id="card_stai" class="card hidden">
-  <h3>Duygu Durumu</h3>
-  <p style="font-size:13px; color:#666;">(Bu bölüm şu an pasiftir, devam ediniz.)</p>
-  <button class="bigBtn" onclick="show('card_hearing')">Devam</button>
+  <h3>Duygu Durum Anketi (STAI-TX1)</h3>
+  <p style="font-size:13px; color:#666;">Aşağıda kişilerin kendilerine ait duygularını anlatmada kullandıkları bir takım ifadeler verilmiştir. Her ifadeyi okuyun, sonra da nasıl hissettiğinizi ifadelerin sağ tarafındaki parantezlerden uygun olanını karalamak suretiyle belirtin. Doğru ya da yanlış cevap yoktur. Herhangi bir ifadenin üzerinde fazla zaman sarf etmeksizin anında nasıl hissettiğinizi gösteren cevabı işaretleyin.</p>
+  <div id="staiContainer"></div> 
+  <button class="bigBtn" onclick="show('card_hearing')">Devam Et</button>
 </div>
 
 <div id="card_hearing" class="card hidden">
   <h3>Ses Kontrolü</h3>
-  <p style="color:#c0392b; font-weight:bold; font-size:14px;">⚠️ iPhone/iPad: Lütfen yandaki "Sessiz" anahtarını kapatın.</p>
-  <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin-bottom:15px;">
-    <label>Sol Kulak Sesi</label><input type="range" id="vol_L" min="0" max="1" step="0.1" value="0.5">
-    <button class="bigBtn" style="background:#9b59b6; margin-top:5px;" onclick="playTestTone(-1)">Sol Test (Bip) 🔊</button>
+  <p style="color:#FF3B30; font-weight:bold; font-size:14px; background:#fff0f0; padding:10px; border-radius:8px;">⚠️ iPhone/iPad: Yandaki "Sessiz" tuşunu kapatın.</p>
+  
+  <div style="background:#fff; padding:15px; border:1px solid #d1d1d6; border-radius:12px; margin:15px 0;">
+    <label><b>Sol Kulak</b> Seviyesi</label>
+    <input type="range" id="vol_L" min="0" max="1" step="0.1" value="0.5">
+    <button class="bigBtn" style="background:#5856D6; margin-top:5px; padding:10px;" onclick="playTestTone(-1)">Sol Bip 🔊</button>
   </div>
-  <div style="background:#f9f9f9; padding:15px; border-radius:8px;">
-    <label>Sağ Kulak Sesi</label><input type="range" id="vol_R" min="0" max="1" step="0.1" value="0.5">
-    <button class="bigBtn" style="background:#9b59b6; margin-top:5px;" onclick="playTestTone(1)">Sağ Test (Bip) 🔊</button>
+
+  <div style="background:#fff; padding:15px; border:1px solid #d1d1d6; border-radius:12px;">
+    <label><b>Sağ Kulak</b> Seviyesi</label>
+    <input type="range" id="vol_R" min="0" max="1" step="0.1" value="0.5">
+    <button class="bigBtn" style="background:#5856D6; margin-top:5px; padding:10px;" onclick="playTestTone(1)">Sağ Bip 🔊</button>
   </div>
-  <button class="bigBtn" style="margin-top:20px; background:#e67e22;" onclick="startMainTest()">TESTİ BAŞLAT</button>
+
+  <button class="bigBtn" style="margin-top:30px; background:#FF9500;" onclick="startExperiment()">TESTİ BAŞLAT</button>
 </div>
 
 <div id="card_ci" class="card hidden">
-  <h3>Zamanlama Testi (CI)</h3>
-  <div id="ciInfoDisplay">Hazırlanıyor...</div>
-  <div style="text-align:center; font-weight:bold; margin-bottom:10px;">Sesi hangi tarafta duydunuz?</div>
+  <h3 id="ci_stage_title">Dinleme Testi</h3>
+  <div style="background:#e5e5ea; padding:20px; border-radius:10px; text-align:center; font-weight:bold; font-size:18px; color:#1c1c1e; margin-bottom:20px;" id="ci_stim_info">Hazır...</div>
+  <p style="text-align:center;">Sesi hangi yönden duydunuz?</p>
   <div class="respRow">
     <div class="respBtn ciBtn" onclick="handleCIResponse('Left', this)">SOL</div>
-    <div class="respBtn ciBtn" onclick="handleCIResponse('Equal', this)">ORTA / EŞİT</div>
+    <div class="respBtn ciBtn" onclick="handleCIResponse('Equal', this)">ORTA</div>
     <div class="respBtn ciBtn" onclick="handleCIResponse('Right', this)">SAĞ</div>
   </div>
 </div>
 
 <div id="card_dicotic" class="card hidden">
   <h3>Dikotik Dinleme</h3>
-  <div id="dicoticInfo" style="text-align:center; padding:10px; margin-bottom:10px;"></div>
-  <button id="btn_startSession" class="bigBtn" onclick="startDicoticBlocks()">Başla</button>
+  <div id="dicoticInfo" style="text-align:center; padding:10px; margin-bottom:10px; font-weight:bold; background:#e1f5fe; border-radius:8px;"></div>
+  
+  <div id="dicoticStartBtnArea" style="text-align:center; margin-top:20px;">
+    <p id="dicoticInstruction" style="margin-bottom:15px;">Bu aşamada...</p>
+    <button class="bigBtn" onclick="startDicoticBlock()">Başla</button>
+  </div>
+
   <div id="dicoticTrials" class="hidden" style="margin-top:20px;">
     <div class="respRow" style="flex-wrap:wrap;">
       <div class="respBtn dicoticBtn" onclick="handleDicoticResponse('BA', this)">BA</div>
@@ -188,224 +166,274 @@
 </div>
 
 <div id="card_end" class="card hidden">
-  <h3>Deney Tamamlandı ✅</h3>
-  <p id="endLog" style="color:green; font-weight:bold;">Veriler gönderiliyor...</p>
+  <h3>Test Tamamlandı ✅</h3>
+  <p id="endLog" style="color:#34C759; font-weight:bold;">Veriler gönderiliyor...</p>
   <div style="margin-top:20px;">
-    <h4>Sonuçlarınız</h4>
+    <h4>Sonuç Özeti</h4>
     <div id="resultTableContainer" style="overflow-x:auto;"></div>
   </div>
 </div>
 
 <script>
-// --- LOGLAMA ---
-const logBox = document.getElementById('debugConsole');
-function log(msg, type='info') {
-    const time = new Date().toLocaleTimeString();
-    const color = type === 'error' ? '#ff5555' : '#55ff55';
-    logBox.innerHTML = `<span style="color:${color}">[${time}] ${msg}</span><br>` + logBox.innerHTML;
-    console.log(`[${type}] ${msg}`);
-}
-window.onerror = function(msg, url, line) { log("JS HATASI: " + msg + " (" + line + ")", 'error'); };
+/* --- 1. GLOBAL AYARLAR --- */
+const EMAIL_CONFIG = { userID: "FLn2zMqKDGso3ePoO", serviceID: "service_a8bnfmk", templateID: "template_r6sddff" };
 
-// --- YARDIMCILAR ---
-const $id = (id) => document.getElementById(id);
-const hideAll = () => document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
-const show = (id) => { hideAll(); $id(id).classList.remove('hidden'); window.scrollTo(0,0); };
-function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
-
-// --- GLOBAL VERİLER ---
-let DATA = { project:'', results:[] };
+// Global Veri
+let DATA = { project: '', results: [] };
 let audioCtx = null;
 let audioBuffers = {}; 
-let ciQueue = [];
-let ciIndex = 0;
-let dicoticQueue = [];
-let dicoticIndex = 0;
+let ciQueue = []; let ciIndex = 0;
+let dicoticQueue = []; let dicoticIndex = 0;
+let sessionOrder = []; let currentSession = '';
 let isClickable = false;
-let sessionOrder = [];
-let currentSession = '';
 
-// --- DOSYALAR ---
-const ALL_FILES = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav", "LBA-RKA.wav","LDA-RGA.wav","LPA-RBA.wav","LKA-RDA.wav","LBA-RBA.wav","LTA-RGA.wav","LBA-RDA.wav","LGA-RPA.wav","LDA-RKA.wav","LPA-RTA.wav","LKA-RKA.wav","LBA-RGA.wav","LKA-RPA.wav","LTA-RDA.wav","LGA-RKA.wav","LPA-RDA.wav","LGA-RGA.wav","LBA-RTA.wav","LGA-RDA.wav","LKA-RTA.wav","LDA-RPA.wav","LTA-RKA.wav","LPA-RPA.wav","LDA-RBA.wav","LGA-RTA.wav","LPA-RKA.wav","LTA-RBA.wav","LKA-RGA.wav","LTA-RTA.wav","LBA-RPA.wav","LDA-RTA.wav","LGA-RBA.wav","LTA-RPA.wav","LDA-RDA.wav","LKA-RBA.wav","LPA-RGA.wav"];
-const UNIQUE_FILES = [...new Set(ALL_FILES)]; 
+// Dosyalar
+const SYLLABLES = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav"];
+const DICOTIC_MAIN = ["LBA-RKA.wav","LDA-RGA.wav","LPA-RBA.wav","LKA-RDA.wav","LBA-RBA.wav","LTA-RGA.wav","LBA-RDA.wav","LGA-RPA.wav","LDA-RKA.wav","LPA-RTA.wav","LKA-RKA.wav","LBA-RGA.wav","LKA-RPA.wav","LTA-RDA.wav","LGA-RKA.wav","LPA-RDA.wav","LGA-RGA.wav","LBA-RTA.wav","LGA-RDA.wav","LKA-RTA.wav","LDA-RPA.wav","LTA-RKA.wav","LPA-RPA.wav","LDA-RBA.wav","LGA-RTA.wav","LPA-RKA.wav","LTA-RBA.wav","LKA-RGA.wav","LTA-RTA.wav","LBA-RPA.wav","LDA-RTA.wav","LGA-RBA.wav","LTA-RPA.wav","LDA-RDA.wav","LKA-RBA.wav","LPA-RGA.wav"];
+const DICOTIC_TRAIN = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav"];
+// Tüm benzersiz dosyalar
+const ALL_FILES = [...new Set([...SYLLABLES, ...DICOTIC_MAIN, ...DICOTIC_TRAIN])];
 const PATH = "./sounds/yeni/erkek/"; 
 
-// --- SES MOTORU (MERGER & CACHE BUSTING) ---
-function initAudio() {
+// Loglama
+const logBox = document.getElementById('debugConsole');
+function log(msg) { logBox.innerHTML = msg; console.log(msg); }
+window.onerror = (msg) => log("ERR: " + msg);
+
+/* --- 2. SES MOTORU (MERGER & KICKSTART) --- */
+function startAudioSystem() {
     try {
         const AC = window.AudioContext || window.webkitAudioContext;
-        if(!AC) return alert("Tarayıcınız desteklemiyor!");
+        if (!AC) return alert("Tarayıcınız desteklenmiyor.");
         
-        if(!audioCtx) audioCtx = new AC();
-        if(audioCtx.state === 'suspended') audioCtx.resume().then(()=>log("Ses Motoru Uyandı."));
-        
-    } catch(e) { log("Ses Hatası: " + e.message, 'error'); }
+        audioCtx = new AC();
+        audioCtx.resume().then(() => {
+            // Boş ses çal ve motoru ısıt
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            g.gain.value = 0.001;
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(0); osc.stop(0.1);
+            
+            document.getElementById('startOverlay').classList.add('hidden');
+            show('card_project');
+        });
+    } catch(e) { alert("Ses hatası: " + e); }
 }
 
-function kickstartAudio() {
-    initAudio();
-    if(audioCtx) {
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        g.gain.value = 0.001; 
-        osc.connect(g); g.connect(audioCtx.destination);
-        osc.start(0); osc.stop(0.01);
-    }
-}
-// Sayfaya tıklayınca motoru dürt
-document.body.addEventListener('click', kickstartAudio);
-document.body.addEventListener('touchstart', kickstartAudio);
+function kickAudio() { if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); }
+document.addEventListener('click', kickAudio);
+document.addEventListener('touchstart', kickAudio);
 
-// YÜKLEME (CACHE BUSTING İLE)
-async function preloadAllSounds() {
-    initAudio();
-    $id('loadingOverlay').classList.remove('hidden');
+// ÖN YÜKLEME (CACHE BUSTING)
+async function preloadSounds() {
+    document.getElementById('loadingOverlay').classList.remove('hidden');
     let loaded = 0;
     
-    // Rastgele sayı (Cache Busting)
-    const cacheBuster = "?v=" + new Date().getTime();
-    
-    for (const filename of UNIQUE_FILES) {
+    for (let f of ALL_FILES) {
         try {
-            // URL SONUNA TIMESTAMP EKLENDİ
-            const response = await fetch(PATH + filename + cacheBuster);
-            if(!response.ok) throw new Error("HTTP " + response.status);
-            
-            const arrayBuffer = await response.arrayBuffer();
-            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-            audioBuffers[filename] = audioBuffer;
+            const url = PATH + f + "?v=" + Math.floor(Math.random() * 99999);
+            const resp = await fetch(url);
+            if(!resp.ok) throw new Error("HTTP");
+            const buf = await resp.arrayBuffer();
+            audioBuffers[f] = await audioCtx.decodeAudioData(buf);
             
             loaded++;
-            const percent = Math.round((loaded/UNIQUE_FILES.length)*100);
-            $id('loadingText').innerText = "%" + percent;
-        } catch (e) {
-            log("Yüklenemedi: " + filename, 'error');
-        }
+            document.getElementById('loadingText').innerText = "%" + Math.round((loaded/ALL_FILES.length)*100);
+        } catch(e) { log("Yükleme Hatası: " + f); }
     }
-    $id('loadingOverlay').classList.add('hidden');
-    log("Tüm sesler yüklendi.");
+    document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
-// --- AKIŞ ---
+/* --- 3. AKIŞ FONKSİYONLARI --- */
+function show(id) {
+    document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    window.scrollTo(0,0);
+}
+
 function onProjectSelect() {
-    const p = $id('projectCode').value;
-    if(!p) return alert("Seçiniz.");
+    const p = document.getElementById('projectCode').value;
+    if(!p) return alert("Proje seçiniz.");
     DATA.project = p;
-    preloadAllSounds();
+    preloadSounds(); // Hemen yüklemeye başla
     show('card_participation');
 }
 
-function showConsent() {
-    show('card_consent');
-    let txt = "Bu çalışma bilimsel amaçlarla yapılmaktadır.";
-    if(DATA.project === 'CI') txt = "CI Zamanlama Çalışması Bilgilendirme...";
-    $id('consentTextPreview').innerText = txt;
-    $id('modalBody').innerHTML = txt;
-}
-
-function openModal() { $id('consentModal').style.display='flex'; }
-function closeModal() { $id('consentModal').style.display='none'; }
-
 function saveInfo() {
-    const n = $id('inp_name').value.trim();
-    if(!n) return alert("İsim giriniz.");
-    DATA.code = DATA.project + "_" + Math.floor(Math.random()*9999);
-    $id('codeDisplay').innerText = "KOD: " + DATA.code;
+    const n = document.getElementById('inp_name').value.trim();
+    if(!n) return alert("Ad zorunlu.");
     
-    DATA.name = n;
+    DATA.name = n; 
+    DATA.surname = document.getElementById('inp_surname').value;
+    DATA.age = document.getElementById('inp_age').value;
+    DATA.email = document.getElementById('inp_email').value;
+    DATA.code = DATA.project + "_" + Math.floor(1000 + Math.random()*9000);
+    document.getElementById('codeDisplay').innerText = "KOD: " + DATA.code;
     
-    if(DATA.project === 'Esporcu') show('card_espor');
-    else if(DATA.project === 'Sporcu') show('card_spor');
-    else show('card_hand'); 
+    renderHandTable();
+    show('card_hand');
 }
 
-function saveExtra(t) { show('card_hand'); }
+// EL TABLOSU
+const HAND_ITEMS = ["Yazmak","Çizmek","Taş Atmak","Makas","Diş Fırçası","Bıçak","Kaşık","Süpürge","Çakmak","Kutu Açmak"];
+function renderHandTable() {
+    const t = document.getElementById('handTableBody'); t.innerHTML="";
+    HAND_ITEMS.forEach((it, i) => {
+        t.innerHTML += `<tr><td>${it}</td><td style="text-align:center"><input type="checkbox" name="hl${i}"></td><td style="text-align:center"><input type="checkbox" name="hr${i}"></td></tr>`;
+    });
+}
+function saveHandData() { 
+    renderStai(); 
+    show('card_stai'); 
+}
 
-// --- SES OYNATMA (MERGER ILE) ---
+// STAI
+function renderStai() {
+    const d = document.getElementById('staiContainer'); d.innerHTML = "";
+    /* --- STAI SORULARI BURAYA --- */
+    const qs = ["Şu anda sakinim","Kendimi emniyette hissediyorum","Şu anda sinirlerim gergin","Pişmanlık duygusu içindeyim","Şu anda huzur içindeyim","Şu anda hiç keyfim yok","Başıma geleceklerden endişe ediyorum","Kendimi dinlenmiş hissediyorum","Şu anda kaygılıyım","Kendimi rahat hissediyorum","Kendime güvenim var","Şu anda asabım bozuk","Çok sinirliyim","Sinirlerimin çok gergin olduğunu hissediyorum","Kendimi rahatlamış hissediyorum","Şu anda halimden memnunum","Şu anda endişeliyim","Heyecandan kendimi şaşkına dönmüş hissediyorum","Şu anda sevinçliyim","Şu anda keyfim yerinde"]; // Soruları buraya yapıştırın
+    
+    if(qs.length===0) d.innerHTML = "<p>Sorular yüklenmedi.</p>";
+    qs.forEach((q,i) => {
+        d.innerHTML += `<div style="border-bottom:1px solid #eee; padding:5px 0;"><p>${i+1}. ${q}</p><label><input type="radio" name="s${i}" value="1">Hiç</label><label><input type="radio" name="s${i}" value="2">Biraz</label><label><input type="radio" name="s${i}" value="3">Çok</label><label><input type="radio" name="s${i}" value="4">Tamamıyla</label></div>`;
+    });
+}
+
+// İŞİTME
 function playTestTone(pan) {
     if(!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    osc.frequency.value = 1500;
-    
+    const osc = audioCtx.createOscillator(); osc.frequency.value = 1500;
     const merger = audioCtx.createChannelMerger(2);
-    const gainL = audioCtx.createGain();
-    const gainR = audioCtx.createGain();
+    const gL = audioCtx.createGain(); const gR = audioCtx.createGain();
     
-    const volL = parseFloat($id('vol_L').value) * 0.1;
-    const volR = parseFloat($id('vol_R').value) * 0.1;
+    const vL = parseFloat(document.getElementById('vol_L').value) * 0.1;
+    const vR = parseFloat(document.getElementById('vol_R').value) * 0.1;
     
-    gainL.gain.value = (pan === -1) ? volL : 0;
-    gainR.gain.value = (pan === 1) ? volR : 0;
+    gL.gain.value = (pan===-1) ? vL : 0;
+    gR.gain.value = (pan===1) ? vR : 0;
     
-    osc.connect(gainL); osc.connect(gainR);
-    gainL.connect(merger, 0, 0); 
-    gainR.connect(merger, 0, 1);
+    osc.connect(gL); osc.connect(gR);
+    gL.connect(merger, 0, 0); gR.connect(merger, 0, 1);
     merger.connect(audioCtx.destination);
     
-    osc.start(); 
-    osc.stop(audioCtx.currentTime + 0.5);
-    log("Bip: " + pan);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.5);
 }
 
-function startMainTest() {
-    DATA.volL = $id('vol_L').value;
-    DATA.volR = $id('vol_R').value;
-    if(DATA.project === 'CI') initCITest(); else { sessionOrder = ['training', 'NF', ...shuffle(['FR','FL'])]; startDicoticSession(); }
+function startExperiment() {
+    DATA.volL = document.getElementById('vol_L').value;
+    DATA.volR = document.getElementById('vol_R').value;
+    
+    if(DATA.project === 'CI') initCITest();
+    else if(DATA.project === 'Migren') {
+        sessionOrder = ['Training', 'NF', ...pseudoShuffle(['FR','FL'])]; // Migren Sıralaması
+        startDicoticSession();
+    }
 }
 
-/* --- CI TEST --- */
+/* --- CI TEST (Pseudo-Random & Bölümler) --- */
 function initCITest() {
     ciQueue = [];
     const delays = [0, 0.003, 0.006, 0.009];
-    delays.forEach(d => { ciQueue.push({type:'tone', delay:d, lead:'Left'}); if(d>0) ciQueue.push({type:'tone', delay:d, lead:'Right'}); });
-    ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav"].forEach(f => {
-        delays.forEach(d => { ciQueue.push({type:'speech', file:f, delay:d, lead:'Left'}); if(d>0) ciQueue.push({type:'speech', file:f, delay:d, lead:'Right'}); });
+    
+    // Tones (1000, 1500, 2000)
+    let tones = [];
+    [1000, 1500, 2000].forEach(fr => {
+        delays.forEach(d => {
+            tones.push({type:'tone', freq:fr, delay:d, lead:'Left'});
+            if(d>0) tones.push({type:'tone', freq:fr, delay:d, lead:'Right'});
+        });
     });
-    ciQueue = shuffle(ciQueue);
+    tones = pseudoShuffle(tones, 'freq'); // Peş peşe aynı frekans gelmesin
+    
+    // Heceler
+    let syls = [];
+    SYLLABLES.forEach(f => {
+        delays.forEach(d => {
+            syls.push({type:'speech', file:f, delay:d, lead:'Left'});
+            if(d>0) syls.push({type:'speech', file:f, delay:d, lead:'Right'});
+        });
+    });
+    syls = pseudoShuffle(syls, 'file'); // Peş peşe aynı hece gelmesin
+    
+    ciQueue = [...tones, ...syls];
     ciIndex = 0;
     show('card_ci');
     setTimeout(playNextCI, 1000);
+}
+
+function pseudoShuffle(arr, key) {
+    // Basit karıştırma
+    for(let i=arr.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+    // Çakışma düzeltme
+    for(let i=1; i<arr.length; i++) {
+        if(arr[i][key] === arr[i-1][key]) {
+            for(let j=i+1; j<arr.length; j++) {
+                if(arr[j][key] !== arr[i-1][key]) { [arr[i],arr[j]]=[arr[j],arr[i]]; break; }
+            }
+        }
+    }
+    return arr;
 }
 
 function playNextCI() {
     if(ciIndex >= ciQueue.length) { finishExp(); return; }
     isClickable = false;
     const t = ciQueue[ciIndex];
-    $id('ciInfoDisplay').innerHTML = `<strong>${t.type}</strong><br>Soru ${ciIndex+1}`;
+    
+    document.getElementById('ci_stage_title').innerText = t.type==='tone' ? "BÖLÜM 1: SAF SESLER" : "BÖLÜM 2: HECELER";
+    document.getElementById('ci_stim_info').innerText = "ÇALINIYOR...";
     document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 0.5);
 
-    const tL = audioCtx.currentTime + 0.1;
-    let timeL = tL; let timeR = tL;
-    if(t.lead === 'Left') timeR += t.delay; else timeL += t.delay;
-    
-    // Sol ve Sağ kaynakları ayrı yönet
-    let srcL, srcR;
-    const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
-    const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR);
-    const merger = audioCtx.createChannelMerger(2);
-
-    if(t.type === 'tone') {
-        srcL = audioCtx.createOscillator(); srcL.frequency.value = 1500;
-        srcR = audioCtx.createOscillator(); srcR.frequency.value = 1500;
-        srcL.start(timeL); srcL.stop(timeL+0.5);
-        srcR.start(timeR); srcR.stop(timeR+0.5);
-    } else {
-        const buf = audioBuffers[t.file];
-        if(!buf) return log("Buffer yok!", 'error');
-        srcL = audioCtx.createBufferSource(); srcL.buffer = buf;
-        srcR = audioCtx.createBufferSource(); srcR.buffer = buf;
-        srcL.start(timeL); srcR.start(timeR);
-    }
-    
-    // Merger bağlantısı
-    srcL.connect(gL); gL.connect(merger, 0, 0);
-    srcR.connect(gR); gR.connect(merger, 0, 1);
-    merger.connect(audioCtx.destination);
+    if(t.type === 'tone') playToneITD(t); else playSpeechITD(t);
     
     setTimeout(() => {
+        document.getElementById('ci_stim_info').innerText = "YANITLAYINIZ";
         document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 1);
         isClickable = true;
     }, 1000);
+}
+
+function playToneITD(t) {
+    const merger = audioCtx.createChannelMerger(2);
+    const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL) * 0.1;
+    const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR) * 0.1;
+    
+    const tStart = audioCtx.currentTime + 0.1;
+    let tL = tStart, tR = tStart;
+    if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
+    
+    const oscL = audioCtx.createOscillator(); oscL.frequency.value = t.freq;
+    const oscR = audioCtx.createOscillator(); oscR.frequency.value = t.freq;
+    
+    oscL.connect(gL); gL.connect(merger, 0, 0);
+    oscR.connect(gR); gR.connect(merger, 0, 1);
+    
+    merger.connect(audioCtx.destination);
+    oscL.start(tL); oscL.stop(tL+0.5);
+    oscR.start(tR); oscR.stop(tR+0.5);
+}
+
+function playSpeechITD(t) {
+    const buf = audioBuffers[t.file];
+    if(!buf) return;
+    
+    const merger = audioCtx.createChannelMerger(2);
+    const gL = audioCtx.createGain(); gL.gain.value = parseFloat(DATA.volL);
+    const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR);
+    
+    const sL = audioCtx.createBufferSource(); sL.buffer = buf;
+    const sR = audioCtx.createBufferSource(); sR.buffer = buf;
+    
+    const tStart = audioCtx.currentTime + 0.1;
+    let tL = tStart, tR = tStart;
+    if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
+    
+    sL.connect(gL); gL.connect(merger, 0, 0);
+    sR.connect(gR); gR.connect(merger, 0, 1);
+    
+    merger.connect(audioCtx.destination);
+    sL.start(tL); sR.start(tR);
 }
 
 function handleCIResponse(ans, btn) {
@@ -415,43 +443,54 @@ function handleCIResponse(ans, btn) {
     if(t.delay === 0 && ans === "Equal") correct = "Correct";
     else if(t.lead === ans) correct = "Correct";
     
-    DATA.results.push({session:'CI_ITD', trial:ciIndex+1, type:t.type, stim:t.file||'Tone', delay:t.delay, lead:t.lead, resp:ans, isCorrect:correct});
-    btn.style.background = '#007AFF'; setTimeout(()=>{ btn.style.background = '#ecf0f1'; }, 200);
-    ciIndex++; setTimeout(playNextCI, 1500);
+    DATA.results.push({trial:ciIndex+1, section:'CI', type:t.type, stim:t.freq||t.file, delay:t.delay, lead:t.lead, resp:ans, isCorrect:correct});
+    ciIndex++; setTimeout(playNextCI, 1000);
 }
 
-/* --- DİKOTİK --- */
-function startDicoticBlocks() {
-    kickstartAudio();
-    $id('btn_startSession').classList.add('hidden');
-    $id('dicoticTrials').classList.remove('hidden');
-    if(currentSession === 'training') dicoticQueue = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav"];
-    else dicoticQueue = UNIQUE_FILES;
-    dicoticIndex = 0; playNextDicotic();
-}
-
+/* --- DİKOTİK (MİGREN) --- */
 function startDicoticSession() {
     if(sessionOrder.length === 0) { finishExp(); return; }
     currentSession = sessionOrder.shift();
-    $id('dicoticInfo').innerText = "Oturum: " + currentSession;
-    $id('btn_startSession').classList.remove('hidden');
-    $id('dicoticTrials').classList.add('hidden');
+    
+    let instr = "";
+    if(currentSession === 'Training') instr = "Eğitim Bölümü: Duyduğunuzu seçin.";
+    if(currentSession === 'NF') instr = "Serbest Dinleme (NF): En net duyduğunuzu seçin.";
+    if(currentSession === 'FR') instr = "Sağ Odaklı (FR): Sadece SAĞ kulağınıza odaklanın.";
+    if(currentSession === 'FL') instr = "Sol Odaklı (FL): Sadece SOL kulağınıza odaklanın.";
+    
+    document.getElementById('dicoticInfo').innerText = instr;
+    document.getElementById('dicoticInstruction').innerText = "Hazır olduğunuzda Başla butonuna basın.";
+    document.getElementById('dicoticStartBtnArea').classList.remove('hidden');
+    document.getElementById('dicoticTrials').classList.add('hidden');
+    
     show('card_dicotic');
+}
+
+function startDicoticBlock() {
+    document.getElementById('dicoticStartBtnArea').classList.add('hidden');
+    document.getElementById('dicoticTrials').classList.remove('hidden');
+    
+    if(currentSession === 'Training') dicoticQueue = DICOTIC_TRAIN;
+    else dicoticQueue = DICOTIC_MAIN;
+    
+    dicoticIndex = 0;
+    playNextDicotic();
 }
 
 function playNextDicotic() {
     if(dicoticIndex >= dicoticQueue.length) { startDicoticSession(); return; }
     isClickable = false;
-    $id('dicoticInfo').innerText = (dicoticIndex+1) + " / " + dicoticQueue.length;
     
     const file = dicoticQueue[dicoticIndex];
-    const buffer = audioBuffers[file];
+    const buf = audioBuffers[file];
     
-    if(buffer) {
+    if(buf) {
         const src = audioCtx.createBufferSource();
-        src.buffer = buffer;
+        src.buffer = buf;
+        
+        // Stereo Gain (Merger yok, çünkü dosya zaten stereo)
         const g = audioCtx.createGain();
-        g.gain.value = parseFloat(DATA.volL); 
+        g.gain.value = (parseFloat(DATA.volL) + parseFloat(DATA.volR)) / 2; // Ort. ses
         src.connect(g).connect(audioCtx.destination);
         src.start(0);
     }
@@ -463,7 +502,10 @@ function handleDicoticResponse(val, btn) {
     const file = dicoticQueue[dicoticIndex];
     const match = file.includes(val) ? "Uyumlu" : "-";
     DATA.results.push({ session: currentSession, trial: dicoticIndex+1, stim:file, resp: val, isCorrect: match });
-    btn.style.background = '#007AFF'; setTimeout(()=>{ btn.style.background = '#ecf0f1'; }, 200);
+    
+    btn.style.background = '#007AFF'; btn.style.color = '#fff';
+    setTimeout(()=>{ btn.style.background = '#f2f2f7'; btn.style.color = '#1c1c1e'; }, 200);
+    
     dicoticIndex++; setTimeout(playNextDicotic, 1500);
 }
 
@@ -471,24 +513,25 @@ function handleDicoticResponse(val, btn) {
 function finishExp() {
     show('card_end');
     
-    let html = '<table class="results-table"><thead><tr><th>Soru</th><th>Detay</th><th>Yanıt</th><th>Durum</th></tr></thead><tbody>';
+    // Tablo
+    let html = '<table class="results-table"><thead><tr><th>Soru</th><th>Uyaran</th><th>Yanıt</th><th>D</th></tr></thead><tbody>';
     DATA.results.forEach(r => {
-        let disp = r.isCorrect === "Correct" ? '<span class="res-correct">✅</span>' : (r.isCorrect === "Wrong" ? '<span class="res-wrong">❌</span>' : r.isCorrect);
-        let info = r.stim;
-        if(r.lead) info += ` (${r.lead} +${r.delay*1000}ms)`;
-        html += `<tr><td>${r.trial}</td><td>${info}</td><td>${r.resp}</td><td>${disp}</td></tr>`;
+        let cls = r.isCorrect === "Correct" ? "res-correct" : (r.isCorrect === "Wrong" ? "res-wrong" : "");
+        let d = r.isCorrect === "Correct" ? "✔" : (r.isCorrect === "Wrong" ? "✖" : r.isCorrect);
+        html += `<tr><td>${r.trial}</td><td>${r.stim}</td><td>${r.resp}</td><td class="${cls}">${d}</td></tr>`;
     });
     html += '</tbody></table>';
-    $id('resultTableContainer').innerHTML = html;
+    document.getElementById('resultTableContainer').innerHTML = html;
 
     const csv = JSON.stringify(DATA);
     if(window.emailjs) {
-        emailjs.init("FLn2zMqKDGso3ePoO");
-        emailjs.send("service_a8bnfmk", "template_r6sddff", { subject: DATA.code, message: csv })
-        .then(()=> $id('endLog').innerText = "Gönderildi!", (e)=> $id('endLog').innerText = "Hata: " + JSON.stringify(e));
+        emailjs.init(EMAIL_CONFIG.userID);
+        emailjs.send(EMAIL_CONFIG.serviceID, EMAIL_CONFIG.templateID, { subject: DATA.code, message: csv })
+        .then(()=> document.getElementById('endLog').innerText = "Gönderildi!", (e)=> document.getElementById('endLog').innerText = "Hata: " + JSON.stringify(e));
     }
 }
 
+});
 </script>
 </body>
 </html>
