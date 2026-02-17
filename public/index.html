@@ -3,38 +3,50 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Nöropsikolojik Değerlendirme (Final)</title>
+<title>Nöropsikolojik Değerlendirme (Final v2)</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <style>
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f2f2f7; color:#1c1c1e; max-width: 650px; margin: auto; padding-bottom: 120px;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; margin:0; padding:15px; background:#f2f2f7; color:#1c1c1e; max-width: 700px; margin: auto; padding-bottom: 120px;}
   h1{font-size:1.3rem; text-align:center; margin-bottom:20px; color:#000;}
   .card{background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); padding:20px; margin-bottom:20px;}
   .hidden{display:none !important;}
   
-  input, select { width:100%; padding:14px; margin:8px 0; border:1px solid #d1d1d6; border-radius:10px; font-size:16px; box-sizing:border-box; background:#fff; }
-  input[type="radio"], input[type="checkbox"] { width: 22px; height: 22px; margin-right: 10px; vertical-align: middle; accent-color: #007AFF; }
-  label { display: flex; align-items: center; margin-bottom: 12px; font-size: 15px; cursor:pointer; }
+  /* Form Elemanları */
+  input[type="text"], input[type="number"], input[type="email"], input[type="tel"], select { 
+    width:100%; padding:12px; margin:8px 0; border:1px solid #d1d1d6; border-radius:8px; font-size:15px; box-sizing:border-box; background:#fff; 
+  }
+  input[type="radio"], input[type="checkbox"] { width: 18px; height: 18px; margin-right: 8px; vertical-align: middle; accent-color: #007AFF; }
+  label { display: flex; align-items: center; margin-bottom: 8px; font-size: 15px; cursor:pointer; }
   
-  .bigBtn { width:100%; padding:16px; border:none; border-radius:12px; background:#007AFF; color:white; font-size:16px; font-weight:600; cursor:pointer; margin-top:15px; transition: opacity 0.2s; }
+  /* Butonlar */
+  .bigBtn { width:100%; padding:16px; border:none; border-radius:12px; background:#007AFF; color:white; font-size:16px; font-weight:600; cursor:pointer; margin-top:20px; transition: opacity 0.2s; }
   .bigBtn:active { opacity: 0.7; }
   .btnGreen { background:#34C759; } .btnRed { background:#FF3B30; }
 
+  /* Tablo Stilleri (El Tercihi) */
+  .grid-table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; }
+  .grid-table th { text-align:center; border-bottom:2px solid #ddd; padding:8px; background:#f9f9f9; }
+  .grid-table td { border-bottom:1px solid #eee; padding:12px 5px; vertical-align:middle; }
+  .grid-item-col { text-align: left; font-weight: 500; width: 40%; }
+  .grid-check-col { text-align: center; }
+  
+  /* STAI Düzeni */
+  .stai-row { border-bottom: 1px solid #eee; padding: 15px 0; }
+  .stai-question { font-weight: 600; margin-bottom: 10px; display: block; }
+  .stai-options { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .stai-options label { font-weight: normal; font-size: 14px; background: #f9f9f9; padding: 8px 12px; border-radius: 6px; border: 1px solid #eee; flex: 1; justify-content: center; }
+  
   /* CI Butonları */
   .respRow { display:flex; gap:10px; margin-top:20px; }
-  .respBtn { flex:1; padding:25px 5px; background:#f2f2f7; border-radius:12px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; color:#1c1c1e; user-select: none; font-size:14px; }
+  .respBtn { flex:1; padding:25px 5px; background:#f2f2f7; border-radius:12px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; color:#1c1c1e; user-select: none; font-size:14px; opacity: 0.5; pointer-events: none; transition: all 0.2s; }
+  .respBtn.active { opacity: 1; pointer-events: auto; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
   
   /* Yükleme Ekranı */
   #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index: 2000; display:flex; flex-direction:column; justify-content:center; align-items:center; }
   .loader { border: 4px solid #e5e5ea; border-top: 4px solid #007AFF; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-  /* Tablo */
-  table.results-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-  table.results-table th, table.results-table td { border: 1px solid #d1d1d6; padding: 8px; text-align: center; }
-  table.results-table th { background-color: #f2f2f7; font-weight: bold; }
-  .res-correct { color: #34C759; font-weight: bold; } .res-wrong { color: #FF3B30; font-weight: bold; }
 
   /* Debug Konsolu */
   #debugConsole { position:fixed; bottom:0; left:0; width:100%; height:30px; background:#1c1c1e; color:#30d158; font-family:monospace; font-size:10px; padding:5px; z-index:9999; border-top:1px solid #333; opacity:0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 20px;}
@@ -56,7 +68,6 @@
   <div class="loader"></div>
   <div style="font-weight:bold; font-size:18px;">Sesler Yükleniyor...</div>
   <div id="loadingText" style="margin-top:10px; color:#8e8e93;">%0</div>
-  <div id="loadingError" style="margin-top:10px; color:red; font-size:12px;"></div>
 </div>
 
 <div id="card_project" class="card hidden">
@@ -87,21 +98,42 @@
 
 <div id="card_info" class="card hidden">
   <h3>Katılımcı Bilgileri</h3>
-  <input id="inp_name" placeholder="Ad (Sadece ilk 2 harf)">
-  <input id="inp_surname" placeholder="Soyad (Sadece ilk 2 harf)">
+  <input id="inp_name" type="text" placeholder="Ad (Sadece ilk 2 harf)">
+  <input id="inp_surname" type="text" placeholder="Soyad (Sadece ilk 2 harf)">
   <input id="inp_age" type="number" placeholder="Yaş">
   <input id="inp_email" type="email" placeholder="E-posta">
   <input id="inp_phone" type="tel" placeholder="Telefon">
-  <select id="inp_gender"><option value="">Cinsiyet Seçiniz</option><option>Kadın</option><option>Erkek</option><option>Diğer</option></select>
+  <input id="inp_race" type="text" placeholder="Doğum Yeri / Irk">
+  <input id="inp_lang" type="text" placeholder="Anadil">
+  <select id="inp_gender">
+    <option value="">Cinsiyet Seçiniz</option>
+    <option value="Kadın">Kadın</option>
+    <option value="Erkek">Erkek</option>
+    <option value="Diğer">Diğer</option>
+  </select>
+  <select id="inp_edu">
+    <option value="">Eğitim Durumu</option>
+    <option value="İlköğretim">İlköğretim</option>
+    <option value="Lise">Lise</option>
+    <option value="Lisans">Lisans</option>
+    <option value="Yüksek Lisans">Yüksek Lisans</option>
+    <option value="Doktora">Doktora</option>
+  </select>
   <div id="codeDisplay" style="margin-top:10px; font-weight:bold; color:#007AFF;"></div>
   <button class="bigBtn" onclick="saveInfo()">Devam Et</button>
 </div>
 
 <div id="card_hand" class="card hidden">
   <h3>El Kullanım Tercihi</h3>
-  <p style="font-size:13px; color:#666;">Sağ veya sol elinizi hangi işlemlerde kullandığınızı bilmek istiyoruz. Lütfen her işlemde kullandığınız ele göre ‘sol’ veya ‘sağ’ hanesini işaretleyin. Mesela yazı yazarken, genellikle sağ ama ara sıra sol elinizi kullanıyorsanız, her iki elin altında yalnızca birer kutucuğu tıklayın. Daima sağ elinizi kullanıyorsanız, sağ el altındaki iki kutucuğu da işaretleyin. Diğer soruları aynı şekilde cevaplandırın. Her satırda mutlaka iki işaretleme olmalıdır.</p>
-  <table style="width:100%; border-collapse:collapse; font-size:14px;">
-    <thead><tr><th style="text-align:left;">İşlem</th><th>Sol</th><th>Sağ</th></tr></thead>
+  <p style="font-size:13px; color:#666; line-height:1.4;">Sağ veya sol elinizi hangi işlemlerde kullandığınızı bilmek istiyoruz. Lütfen her işlemde kullandığınız ele göre ‘sol’ veya ‘sağ’ hanesini işaretleyin. Mesela yazı yazarken, genellikle sağ ama ara sıra sol elinizi kullanıyorsanız, her iki elin altında yalnızca birer kutucuğu tıklayın. Daima sağ elinizi kullanıyorsanız, sağ el altındaki iki kutucuğu da işaretleyin. Diğer soruları aynı şekilde cevaplandırın. Her satırda mutlaka iki işaretleme olmalıdır.</p>
+  <table class="grid-table">
+    <thead>
+      <tr>
+        <th style="text-align:left;">İşlem</th>
+        <th colspan="2">SOL</th>
+        <th colspan="2">SAĞ</th>
+      </tr>
+    </thead>
     <tbody id="handTableBody"></tbody>
   </table>
   <button class="bigBtn" onclick="saveHandData()">Devam Et</button>
@@ -185,6 +217,7 @@ let audioBuffers = {};
 let ciQueue = []; let ciIndex = 0;
 let dicoticQueue = []; let dicoticIndex = 0;
 let sessionOrder = []; let currentSession = '';
+let responseTimer = null; // 4sn Zamanlayıcı
 let isClickable = false;
 
 // Dosyalar
@@ -203,7 +236,7 @@ function log(msg) {
 }
 window.onerror = (msg, url, line) => log("ERROR: " + msg + " (" + line + ")");
 
-/* --- 2. SES MOTORU (Global) --- */
+/* --- 2. SES MOTORU --- */
 function startAudioSystem() {
     try {
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -211,14 +244,12 @@ function startAudioSystem() {
         
         audioCtx = new AC();
         audioCtx.resume().then(() => {
-            // Boş bir ses çal ve motoru ısıt
             const osc = audioCtx.createOscillator();
             const g = audioCtx.createGain();
             g.gain.value = 0.001;
             osc.connect(g); g.connect(audioCtx.destination);
             osc.start(0); osc.stop(0.1);
             
-            log("Ses motoru başlatıldı.");
             document.getElementById('startOverlay').classList.add('hidden');
             show('card_project');
         });
@@ -235,7 +266,6 @@ document.addEventListener('touchstart', kickAudio);
 async function preloadAllSounds() {
     document.getElementById('loadingOverlay').classList.remove('hidden');
     let loaded = 0;
-    
     const uniqueFiles = [...new Set(ALL_FILES)]; 
     
     for (let f of uniqueFiles) {
@@ -266,21 +296,27 @@ function onProjectSelect() {
     const p = document.getElementById('projectCode').value;
     if(!p) return alert("Proje seçiniz.");
     DATA.project = p;
-    preloadAllSounds(); // Hemen yüklemeye başla
+    preloadAllSounds();
     show('card_participation');
 }
 
 function saveInfo() {
     const n = document.getElementById('inp_name').value.trim();
-    if(!n) return alert("Ad zorunlu.");
+    const s = document.getElementById('inp_surname').value.trim();
+    if(!n || !s) return alert("Ad ve Soyad zorunludur.");
     
     DATA.name = n; 
-    DATA.surname = document.getElementById('inp_surname').value;
+    DATA.surname = s;
     DATA.age = document.getElementById('inp_age').value;
     DATA.email = document.getElementById('inp_email').value;
     DATA.phone = document.getElementById('inp_phone').value;
+    DATA.race = document.getElementById('inp_race').value;
+    DATA.lang = document.getElementById('inp_lang').value;
+    DATA.gender = document.getElementById('inp_gender').value;
+    DATA.edu = document.getElementById('inp_edu').value;
+    
     DATA.code = DATA.project + "_" + Math.floor(1000 + Math.random()*9000);
-    document.getElementById('codeDisplay').innerText = "KOD: " + DATA.code;
+    document.getElementById('codeDisplay').innerText = "KODUNUZ: " + DATA.code;
     
     renderHandTable();
     show('card_hand');
@@ -293,7 +329,12 @@ function renderHandTable() {
     const tbody = document.getElementById('handTableBody');
     tbody.innerHTML = "";
     HAND_ITEMS.forEach((item, i) => {
-        tbody.innerHTML += `<tr><td>${item}</td><td style="text-align:center"><input type="checkbox" name="h_l_${i}"></td><td style="text-align:center"><input type="checkbox" name="h_r_${i}"></td></tr>`;
+        tbody.innerHTML += `
+        <tr>
+            <td class="grid-item-col">${item}</td>
+            <td class="grid-check-col"><input type="checkbox" name="h_${i}_L1"> <input type="checkbox" name="h_${i}_L2"></td>
+            <td class="grid-check-col"><input type="checkbox" name="h_${i}_R1"> <input type="checkbox" name="h_${i}_R2"></td>
+        </tr>`;
     });
 }
 
@@ -305,12 +346,20 @@ function saveHandData() {
 function renderStai() {
     const div = document.getElementById('staiContainer');
     div.innerHTML = ""; 
-    /* --- STAI SORULARI BURAYA --- */
-    const qs = ["Şu anda sakinim","Kendimi emniyette hissediyorum","Şu anda sinirlerim gergin","Pişmanlık duygusu içindeyim","Şu anda huzur içindeyim","Şu anda hiç keyfim yok","Başıma geleceklerden endişe ediyorum","Kendimi dinlenmiş hissediyorum","Şu anda kaygılıyım","Kendimi rahat hissediyorum","Kendime güvenim var","Şu anda asabım bozuk","Çok sinirliyim","Sinirlerimin çok gergin olduğunu hissediyorum","Kendimi rahatlamış hissediyorum","Şu anda halimden memnunum","Şu anda endişeliyim","Heyecandan kendimi şaşkına dönmüş hissediyorum","Şu anda sevinçliyim","Şu anda keyfim yerinde"]; // SORULARI YAPIŞTIRIN
+    const questions = ["Şu anda sakinim","Kendimi emniyette hissediyorum","Şu anda sinirlerim gergin","Pişmanlık duygusu içindeyim","Şu anda huzur içindeyim","Şu anda hiç keyfim yok","Başıma geleceklerden endişe ediyorum","Kendimi dinlenmiş hissediyorum","Şu anda kaygılıyım","Kendimi rahat hissediyorum","Kendime güvenim var","Şu anda asabım bozuk","Çok sinirliyim","Sinirlerimin çok gergin olduğunu hissediyorum","Kendimi rahatlamış hissediyorum","Şu anda halimden memnunum","Şu anda endişeliyim","Heyecandan kendimi şaşkına dönmüş hissediyorum","Şu anda sevinçliyim","Şu anda keyfim yerinde"]; 
     
-    if(qs.length===0) div.innerHTML = "<p>Sorular yüklenmedi. Devam edebilirsiniz.</p>";
-    qs.forEach((q,i) => {
-        div.innerHTML += `<div style="border-bottom:1px solid #eee; padding:5px 0;"><p>${i+1}. ${q}</p><label><input type="radio" name="s${i}" value="1">Hiç</label><label><input type="radio" name="s${i}" value="2">Biraz</label><label><input type="radio" name="s${i}" value="3">Çok</label><label><input type="radio" name="s${i}" value="4">Tamamıyla</label></div>`;
+    if(questions.length===0) div.innerHTML = "<p>Sorular yüklenmedi.</p>";
+    questions.forEach((q, i) => {
+        div.innerHTML += `
+        <div class="stai-row">
+            <span class="stai-question">${i+1}. ${q}</span>
+            <div class="stai-options">
+                <label><input type="radio" name="s${i}" value="1"> Hiç</label>
+                <label><input type="radio" name="s${i}" value="2"> Biraz</label>
+                <label><input type="radio" name="s${i}" value="3"> Çok</label>
+                <label><input type="radio" name="s${i}" value="4"> Tamamıyla</label>
+            </div>
+        </div>`;
     });
 }
 
@@ -320,17 +369,13 @@ function playTestTone(pan) {
     const osc = audioCtx.createOscillator(); osc.frequency.value = 1500;
     const merger = audioCtx.createChannelMerger(2);
     const gL = audioCtx.createGain(); const gR = audioCtx.createGain();
-    
     const vL = parseFloat(document.getElementById('vol_L').value) * 0.1;
     const vR = parseFloat(document.getElementById('vol_R').value) * 0.1;
-    
     gL.gain.value = (pan===-1) ? vL : 0;
     gR.gain.value = (pan===1) ? vR : 0;
-    
     osc.connect(gL); osc.connect(gR);
     gL.connect(merger, 0, 0); gR.connect(merger, 0, 1);
     merger.connect(audioCtx.destination);
-    
     osc.start(); osc.stop(audioCtx.currentTime + 0.5);
 }
 
@@ -392,20 +437,38 @@ function initCITest() {
 }
 
 function playNextCI() {
+    clearTimeout(responseTimer); // Önceki sayacı temizle
     if(ciIndex >= ciQueue.length) { finishExp(); return; }
+    
     isClickable = false;
     const t = ciQueue[ciIndex];
     document.getElementById('ci_stage_title').innerText = t.type==='tone' ? "BÖLÜM 1: SAF SESLER" : "BÖLÜM 2: HECELER";
     document.getElementById('ci_stim_info').innerText = "ÇALINIYOR...";
-    document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 0.5);
+    document.querySelectorAll('.ciBtn').forEach(b => {
+        b.classList.remove('active'); // Görüntüyü sıfırla
+    });
+
+    let duration = 0.5; // Tone için default
+    if(t.type === 'speech' && audioBuffers[t.file]) {
+        duration = audioBuffers[t.file].duration;
+    }
 
     if(t.type === 'tone') playToneITD(t); else playSpeechITD(t);
     
+    // SES BİTİMİ + 300ms SONRA BUTONLARI AÇ + 4000ms SAYACI BAŞLAT
+    const lockTime = (duration * 1000) + 300;
+    
     setTimeout(() => {
         document.getElementById('ci_stim_info').innerText = "YANITLAYINIZ";
-        document.querySelectorAll('.ciBtn').forEach(b => b.style.opacity = 1);
+        document.querySelectorAll('.ciBtn').forEach(b => b.classList.add('active'));
         isClickable = true;
-    }, 1000);
+        
+        // 4 Saniye içinde yanıt gelmezse
+        responseTimer = setTimeout(() => {
+            handleCIResponse("No Response", null, true); // Timeout Trigger
+        }, 4000);
+        
+    }, lockTime);
 }
 
 function playToneITD(t) {
@@ -445,14 +508,48 @@ function playSpeechITD(t) {
     sL.start(tL); sR.start(tR);
 }
 
-function handleCIResponse(ans, btn) {
-    if(!isClickable) return;
+function handleCIResponse(ans, btn, isTimeout=false) {
+    // Eğer tıklama yasaksa ve bu bir timeout çağrısı değilse çık
+    if(!isClickable && !isTimeout) return;
+    
+    clearTimeout(responseTimer); // Sayacı durdur
+    isClickable = false;
+    document.querySelectorAll('.ciBtn').forEach(b => b.classList.remove('active'));
+
     const t = ciQueue[ciIndex];
     let correct = "Wrong";
-    if(t.delay === 0 && ans === "Equal") correct = "Correct";
-    else if(t.lead === ans) correct = "Correct";
-    DATA.results.push({trial:ciIndex+1, section:'CI', type:t.type, stim:t.freq||t.file, delay:t.delay, lead:t.lead, resp:ans, isCorrect:correct});
-    ciIndex++; setTimeout(playNextCI, 1000);
+    
+    if(isTimeout) {
+        correct = "Wrong"; // Yanıt yoksa yanlış
+        ans = "No Response";
+    } else {
+        // Normal Yanıt Kontrolü
+        if(t.delay === 0 && ans === "Equal") correct = "Correct";
+        else if(t.lead === ans) correct = "Correct";
+        
+        // Görsel Efekt (Sadece tıklanırsa)
+        if(btn) {
+            btn.style.background = '#007AFF'; btn.style.color = '#fff';
+            setTimeout(()=>{ btn.style.background = '#f2f2f7'; btn.style.color = '#1c1c1e'; }, 200);
+        }
+    }
+    
+    DATA.results.push({
+        trial: ciIndex+1, 
+        section: 'CI', 
+        type: t.type, 
+        stim: t.freq || t.file, 
+        delay: t.delay, 
+        lead: t.lead, 
+        resp: ans, 
+        isCorrect: correct
+    });
+    
+    ciIndex++; 
+    
+    // ITI: 2000 - 2500 ms Rastgele Bekleme
+    const iti = Math.floor(Math.random() * 500) + 2000;
+    setTimeout(playNextCI, iti);
 }
 
 /* --- DİKOTİK (MİGREN) --- */
