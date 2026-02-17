@@ -25,7 +25,7 @@
   .bigBtn:active { opacity: 0.7; }
   .btnGreen { background:#34C759; } .btnRed { background:#FF3B30; } 
 
-  /* Tablo (El Tercihi - Düzeltilmiş Hizalama) */
+  /* Tablo (El Tercihi) */
   .grid-table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; table-layout: fixed; }
   .grid-table th { text-align:center; border:1px solid #e0e0e0; padding:10px 5px; background:#f9f9f9; font-size: 13px; font-weight: bold; }
   .grid-table td { border:1px solid #e0e0e0; padding:12px 5px; vertical-align:middle; text-align: center; }
@@ -37,9 +37,11 @@
   .stai-options { display: flex; justify-content: space-between; gap: 5px; }
   .stai-options label { font-weight: normal; font-size: 13px; background: #f9f9f9; padding: 10px 5px; border-radius: 6px; border: 1px solid #eee; flex: 1; justify-content: center; text-align: center; }
   
-  /* CI Butonları */
-  .respRow { display:flex; gap:10px; margin-top:20px; }
-  .respBtn { flex:1; padding:25px 5px; background:#f2f2f7; border-radius:12px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; color:#1c1c1e; user-select: none; font-size:14px; opacity: 0.5; pointer-events: none; }
+  /* CI ve Dikotik Butonları */
+  .respRow { display:flex; gap:10px; margin-top:10px; } /* Satır arası boşluk */
+  .respBtn { flex:1; padding:25px 5px; background:#f2f2f7; border-radius:12px; text-align:center; font-weight:bold; cursor:pointer; border:1px solid #d1d1d6; color:#1c1c1e; user-select: none; font-size:14px; opacity: 0.5; pointer-events: none; transition: opacity 0.2s, background 0.2s; }
+  
+  /* Aktif olduğunda buton parlar ve tıklanabilir olur */
   .respBtn.active { opacity: 1; pointer-events: auto; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
   
   /* Yükleme */
@@ -209,10 +211,12 @@
   </div>
 
   <div id="dicoticTrials" class="hidden" style="margin-top:20px;">
-    <div class="respRow" style="flex-wrap:wrap;">
+    <div class="respRow">
       <div class="respBtn dicoticBtn" onclick="handleDicoticResponse('BA', this)">BA</div>
       <div class="respBtn dicoticBtn" onclick="handleDicoticResponse('DA', this)">DA</div>
       <div class="respBtn dicoticBtn" onclick="handleDicoticResponse('GA', this)">GA</div>
+    </div>
+    <div class="respRow">
       <div class="respBtn dicoticBtn" onclick="handleDicoticResponse('KA', this)">KA</div>
       <div class="respBtn dicoticBtn" onclick="handleDicoticResponse('PA', this)">PA</div>
       <div class="respBtn dicoticBtn" onclick="handleDicoticResponse('TA', this)">TA</div>
@@ -394,7 +398,7 @@ function renderStai() {
     div.innerHTML = ""; 
     
     // ======================================================
-    // STAI SORULARI (BURAYA TAM LİSTEYİ YAPIŞTIRABİLİRSİNİZ)
+    // STAI SORULARI BURADA KORUNDU
     // ======================================================
     const questions = ["Şu anda sakinim","Kendimi emniyette hissediyorum","Şu anda sinirlerim gergin","Pişmanlık duygusu içindeyim","Şu anda huzur içindeyim","Şu anda hiç keyfim yok","Başıma geleceklerden endişe ediyorum","Kendimi dinlenmiş hissediyorum","Şu anda kaygılıyım","Kendimi rahat hissediyorum","Kendime güvenim var","Şu anda asabım bozuk","Çok sinirliyim","Sinirlerimin çok gergin olduğunu hissediyorum","Kendimi rahatlamış hissediyorum","Şu anda halimden memnunum","Şu anda endişeliyim","Heyecandan kendimi şaşkına dönmüş hissediyorum","Şu anda sevinçliyim","Şu anda keyfim yerinde"]; 
     
@@ -415,10 +419,6 @@ function renderStai() {
 }
 
 function saveStaiData() {
-    // STAI Sorularını Kontrol Et
-    // Not: questions dizisi boşsa (yer tutucuysa) validasyon hata vermesin diye bu kontrolü esnettim.
-    // Eğer soruları yapıştırırsanız aşağıdaki döngü çalışacaktır.
-    
     let staiRes = {};
     const questionCount = document.querySelectorAll('.stai-row').length;
     
@@ -670,26 +670,45 @@ function startDicoticBlock() {
 function playNextDicotic() {
     if(dicoticIndex >= dicoticQueue.length) { startDicoticSession(); return; }
     isClickable = false;
+    
+    // BUTONLARI SIFIRLA
+    document.querySelectorAll('.dicoticBtn').forEach(b => b.classList.remove('active'));
+
     const file = dicoticQueue[dicoticIndex];
     const buf = audioBuffers[file];
+    
     if(buf) {
         const src = audioCtx.createBufferSource();
         src.buffer = buf;
+        
+        // Stereo Gain
         const g = audioCtx.createGain();
-        g.gain.value = (parseFloat(DATA.volL) + parseFloat(DATA.volR)) / 2;
+        g.gain.value = (parseFloat(DATA.volL) + parseFloat(DATA.volR)) / 2; // Ort. ses
         src.connect(g).connect(audioCtx.destination);
         src.start(0);
     }
-    setTimeout(()=>{ isClickable = true; }, 500);
+    
+    // SES BİTİMİNE YAKIN BUTONLARI AKTİF ET (500ms sonra)
+    setTimeout(()=>{ 
+        isClickable = true; 
+        document.querySelectorAll('.dicoticBtn').forEach(b => b.classList.add('active'));
+    }, 500);
 }
 
 function handleDicoticResponse(val, btn) {
     if(!isClickable) return;
+    
+    // BUTONLARI KAPAT
+    isClickable = false;
+    document.querySelectorAll('.dicoticBtn').forEach(b => b.classList.remove('active'));
+
     const file = dicoticQueue[dicoticIndex];
     const match = file.includes(val) ? "Uyumlu" : "-";
     DATA.results.push({ session: currentSession, trial: dicoticIndex+1, stim:file, resp: val, isCorrect: match });
+    
     btn.style.background = '#007AFF'; btn.style.color = '#fff';
     setTimeout(()=>{ btn.style.background = '#f2f2f7'; btn.style.color = '#1c1c1e'; }, 200);
+    
     dicoticIndex++; setTimeout(playNextDicotic, 1500);
 }
 
