@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Biyofizik Test Bataryası</title>
+<title>Nöropsikolojik Değerlendirme</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
@@ -17,7 +17,6 @@
   input[type="text"], input[type="number"], input[type="email"], input[type="tel"], select { 
     width:100%; padding:12px; margin:8px 0; border:1px solid #d1d1d6; border-radius:8px; font-size:15px; background:#fff; box-sizing:border-box;
   }
-  /* Checkbox ve Radio - Mobilde kolay seçim için büyütüldü */
   input[type="radio"], input[type="checkbox"] { width: 22px; height: 22px; margin: 0; vertical-align: middle; accent-color: #007AFF; cursor: pointer; }
   label { display: flex; align-items: center; margin-bottom: 8px; font-size: 15px; cursor:pointer; }
   
@@ -26,11 +25,11 @@
   .bigBtn:active { opacity: 0.7; }
   .btnGreen { background:#34C759; } .btnRed { background:#FF3B30; } 
 
-  /* Tablo (El Tercihi) */
+  /* Tablo (El Tercihi - Düzeltilmiş Hizalama) */
   .grid-table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; table-layout: fixed; }
-  .grid-table th { text-align:center; border-bottom:2px solid #ddd; padding:10px 5px; background:#f9f9f9; font-size: 13px; }
-  .grid-table td { border-bottom:1px solid #eee; padding:12px 5px; vertical-align:middle; text-align: center; }
-  .grid-item-col { text-align: left !important; font-weight: 500; width: 40%; }
+  .grid-table th { text-align:center; border:1px solid #e0e0e0; padding:10px 5px; background:#f9f9f9; font-size: 13px; font-weight: bold; }
+  .grid-table td { border:1px solid #e0e0e0; padding:12px 5px; vertical-align:middle; text-align: center; }
+  .grid-item-col { text-align: left !important; font-weight: 500; padding-left: 10px !important; }
   
   /* STAI */
   .stai-row { border-bottom: 1px solid #eee; padding: 15px 0; }
@@ -51,14 +50,13 @@
   /* Sonuç Tablosu */
   table.res-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
   table.res-table th, table.res-table td { border: 1px solid #ccc; padding: 5px; text-align: center; }
-  .correct { color: green; font-weight: bold; } .wrong { color: red; font-weight: bold; }
   
   #debugConsole { display:none; }
 </style>
 </head>
 <body>
 
-<h1>Biyofizik Test Bataryası</h1>
+<h1>Nöropsikolojik Değerlendirme</h1>
 
 <div id="startOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fff; z-index:3000; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; text-align:center;">
   <h2>Hoşgeldiniz</h2>
@@ -131,12 +129,19 @@
   <h3>El Kullanım Tercihi</h3>
   <p style="font-size:13px; color:#666; line-height:1.5; background:#f9f9f9; padding:10px; border-radius:8px;">
     Sağ veya sol elinizi hangi işlemlerde kullandığınızı bilmek istiyoruz. Lütfen her işlemde kullandığınız ele göre ‘sol’ veya ‘sağ’ hanesini işaretleyin. <br><br>
-    - Mesela yazı yazarken, genellikle sağ ama ara sıra sol elinizi kullanıyorsanız, <b>her iki elin altında yalnızca birer kutucuğu tıklayın.</b> (Toplam 2 işaret)<br>
-    - Daima sağ elinizi kullanıyorsanız, <b>sağ el altındaki iki kutucuğu da işaretleyin.</b> (Toplam 2 işaret)<br><br>
-    <b>Her satırda mutlaka iki işaretleme olmalıdır.</b>
+    - Mesela yazı yazarken, genellikle sağ ama ara sıra sol elinizi kullanıyorsanız, <b>her iki elin altında yalnızca birer kutucuğu tıklayın.</b> (Sol:1, Sağ:1)<br>
+    - Daima sağ elinizi kullanıyorsanız, <b>sağ el altındaki iki kutucuğu da işaretleyin.</b> (Sol:0, Sağ:2)<br><br>
+    <b>Her satırda mutlaka toplam 2 kutucuk işaretlenmiş olmalıdır.</b>
   </p>
   
   <table class="grid-table">
+    <colgroup>
+      <col style="width: 40%">
+      <col style="width: 15%">
+      <col style="width: 15%">
+      <col style="width: 15%">
+      <col style="width: 15%">
+    </colgroup>
     <thead>
       <tr>
         <th class="grid-item-col">İşlem</th>
@@ -151,7 +156,7 @@
 
 <div id="card_stai" class="card hidden">
   <h3>Duygu Durum Anketi (STAI-TX1)</h3>
-  <p style="font-size:13px; color:#666;">Aşağıda kişilerin kendilerine ait duygularını anlatmada kullandıkları bir takım ifadeler verilmiştir. Her ifadeyi okuyun, sonra da nasıl hissettiğinizi en iyi yansıtan seçeneği işaretleyin.</p>
+  <p style="font-size:13px; color:#666;">Aşağıdaki ifadeler için şu anki hissinizi işaretleyiniz.</p>
   <div id="staiContainer"></div> 
   <button class="bigBtn" onclick="saveStaiData()">Devam Et</button>
 </div>
@@ -189,7 +194,7 @@
   <p style="text-align:center;">Sesi hangi yönden duydunuz?</p>
   <div class="respRow">
     <div class="respBtn ciBtn" onclick="handleCIResponse('Left', this)">SOL</div>
-    <div class="respBtn ciBtn" onclick="handleCIResponse('Equal', this)">ORTA</div>
+    <div class="respBtn ciBtn" onclick="handleCIResponse('Equal', this)">ORTA / EŞİT</div>
     <div class="respBtn ciBtn" onclick="handleCIResponse('Right', this)">SAĞ</div>
   </div>
 </div>
@@ -233,10 +238,10 @@
 const EMAIL_CONFIG = { 
     userID: "FLn2zMqKDGso3ePoO",        // EmailJS User ID
     serviceID: "service_a8bnfmk",       // EmailJS Service ID
-    templateID: "template_7elc4wi"      // EmailJS Template ID (BURAYA YAZIN)
+    templateID: "template_7elc4wi"      // EmailJS Template ID
 };
 
-// Global Veri Saklama
+// Global Veri
 let DATA = { project: '', results: [] };
 let audioCtx = null;
 let audioBuffers = {}; 
@@ -248,7 +253,7 @@ let responseTimer = null;
 let isClickable = false;
 let playedLeft = false, playedRight = false;
 
-// Dosya Listeleri
+// Dosyalar
 const SYLLABLES = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav","LKA-RKA.wav","LPA-RPA.wav","LTA-RTA.wav"];
 const DICOTIC_MAIN = ["LBA-RKA.wav","LDA-RGA.wav","LPA-RBA.wav","LKA-RDA.wav","LBA-RBA.wav","LTA-RGA.wav","LBA-RDA.wav","LGA-RPA.wav","LDA-RKA.wav","LPA-RTA.wav","LKA-RKA.wav","LBA-RGA.wav","LKA-RPA.wav","LTA-RDA.wav","LGA-RKA.wav","LPA-RDA.wav","LGA-RGA.wav","LBA-RTA.wav","LGA-RDA.wav","LKA-RTA.wav","LDA-RPA.wav","LTA-RKA.wav","LPA-RPA.wav","LDA-RBA.wav","LGA-RTA.wav","LPA-RKA.wav","LTA-RBA.wav","LKA-RGA.wav","LTA-RTA.wav","LBA-RPA.wav","LDA-RTA.wav","LGA-RBA.wav","LTA-RPA.wav","LDA-RDA.wav","LKA-RBA.wav","LPA-RGA.wav"];
 const DICOTIC_TRAIN = ["LBA-RBA.wav","LDA-RDA.wav","LGA-RGA.wav"];
@@ -356,8 +361,10 @@ function renderHandTable() {
         tbody.innerHTML += `
         <tr>
             <td class="grid-item-col">${item}</td>
-            <td class="grid-check-col"><input type="checkbox" name="h_${i}_L1"> <input type="checkbox" name="h_${i}_L2"></td>
-            <td class="grid-check-col"><input type="checkbox" name="h_${i}_R1"> <input type="checkbox" name="h_${i}_R2"></td>
+            <td class="grid-check-col"><input type="checkbox" name="h_${i}_L1"></td>
+            <td class="grid-check-col"><input type="checkbox" name="h_${i}_L2"></td>
+            <td class="grid-check-col"><input type="checkbox" name="h_${i}_R1"></td>
+            <td class="grid-check-col"><input type="checkbox" name="h_${i}_R2"></td>
         </tr>`;
     });
 }
@@ -385,7 +392,13 @@ function saveHandData() {
 function renderStai() {
     const div = document.getElementById('staiContainer');
     div.innerHTML = ""; 
+    
+    // ======================================================
+    // STAI SORULARI (BURAYA TAM LİSTEYİ YAPIŞTIRABİLİRSİNİZ)
+    // ======================================================
     const questions = ["Şu anda sakinim","Kendimi emniyette hissediyorum","Şu anda sinirlerim gergin","Pişmanlık duygusu içindeyim","Şu anda huzur içindeyim","Şu anda hiç keyfim yok","Başıma geleceklerden endişe ediyorum","Kendimi dinlenmiş hissediyorum","Şu anda kaygılıyım","Kendimi rahat hissediyorum","Kendime güvenim var","Şu anda asabım bozuk","Çok sinirliyim","Sinirlerimin çok gergin olduğunu hissediyorum","Kendimi rahatlamış hissediyorum","Şu anda halimden memnunum","Şu anda endişeliyim","Heyecandan kendimi şaşkına dönmüş hissediyorum","Şu anda sevinçliyim","Şu anda keyfim yerinde"]; 
+    
+    if(questions.length === 0) div.innerHTML = "<p>Sorular şu an yüklenmedi. (Yer tutucu)</p>";
     
     questions.forEach((q, i) => {
         div.innerHTML += `
@@ -402,12 +415,21 @@ function renderStai() {
 }
 
 function saveStaiData() {
+    // STAI Sorularını Kontrol Et
+    // Not: questions dizisi boşsa (yer tutucuysa) validasyon hata vermesin diye bu kontrolü esnettim.
+    // Eğer soruları yapıştırırsanız aşağıdaki döngü çalışacaktır.
+    
     let staiRes = {};
-    for(let i=0; i<20; i++) {
-        let el = document.querySelector(`input[name="s${i}"]:checked`);
-        if(!el) return alert("Lütfen tüm soruları yanıtlayınız.");
-        staiRes[`Q${i+1}`] = el.value;
+    const questionCount = document.querySelectorAll('.stai-row').length;
+    
+    if (questionCount > 0) {
+        for(let i=0; i<questionCount; i++) {
+            let el = document.querySelector(`input[name="s${i}"]:checked`);
+            if(!el) return alert("Lütfen STAI anketindeki tüm soruları yanıtlayınız.");
+            staiRes[`Q${i+1}`] = el.value;
+        }
     }
+    
     DATA.staiData = staiRes;
     show('card_hearing');
 }
@@ -471,8 +493,14 @@ function initCITest() {
     let tones = [];
     [1000, 1500, 2000].forEach(fr => {
         delays.forEach(d => {
-            tones.push({type:'tone', freq:fr, delay:d, lead:'Left'});
-            if(d>0) tones.push({type:'tone', freq:fr, delay:d, lead:'Right'});
+            if (d === 0) {
+                // 0ms gecikme (Tek deneme, cevap Equal)
+                tones.push({type:'tone', freq:fr, delay:0, lead:'None'});
+            } else {
+                // Gecikmeli durumlar (Sol ve Sağ)
+                tones.push({type:'tone', freq:fr, delay:d, lead:'Left'});
+                tones.push({type:'tone', freq:fr, delay:d, lead:'Right'});
+            }
         });
     });
     tones = pseudoShuffle(tones, 'freq');
@@ -480,13 +508,16 @@ function initCITest() {
     let syls = [];
     SYLLABLES.forEach(f => {
         delays.forEach(d => {
-            syls.push({type:'speech', file:f, delay:d, lead:'Left'});
-            if(d>0) syls.push({type:'speech', file:f, delay:d, lead:'Right'});
+            if (d === 0) {
+                syls.push({type:'speech', file:f, delay:0, lead:'None'});
+            } else {
+                syls.push({type:'speech', file:f, delay:d, lead:'Left'});
+                syls.push({type:'speech', file:f, delay:d, lead:'Right'});
+            }
         });
     });
     syls = pseudoShuffle(syls, 'file');
     
-    // Blokları Karıştır ve Başlat
     ciBlocks = pseudoShuffle([tones, syls]); 
     currentBlockIndex = 0;
     loadNextCIBlock();
@@ -549,7 +580,10 @@ function playToneITD(t) {
     const gR = audioCtx.createGain(); gR.gain.value = parseFloat(DATA.volR) * 0.1;
     const tStart = audioCtx.currentTime + 0.1;
     let tL = tStart, tR = tStart;
-    if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
+    
+    if(t.lead === 'Left') tR += t.delay; 
+    else if(t.lead === 'Right') tL += t.delay;
+    
     const oscL = audioCtx.createOscillator(); oscL.frequency.value = t.freq;
     const oscR = audioCtx.createOscillator(); oscR.frequency.value = t.freq;
     oscL.connect(gL); gL.connect(merger, 0, 0);
@@ -569,7 +603,10 @@ function playSpeechITD(t) {
     const sR = audioCtx.createBufferSource(); sR.buffer = buf;
     const tStart = audioCtx.currentTime + 0.1;
     let tL = tStart, tR = tStart;
-    if(t.lead === 'Left') tR += t.delay; else tL += t.delay;
+    
+    if(t.lead === 'Left') tR += t.delay; 
+    else if(t.lead === 'Right') tL += t.delay;
+    
     sL.connect(gL); gL.connect(merger, 0, 0);
     sR.connect(gR); gR.connect(merger, 0, 1);
     merger.connect(audioCtx.destination);
@@ -586,8 +623,15 @@ function handleCIResponse(ans, btn, isTimeout=false) {
     let correct = "Wrong";
     if(isTimeout) { ans = "No Response"; } 
     else {
-        if(t.delay === 0 && ans === "Equal") correct = "Correct";
-        else if(t.lead === ans) correct = "Correct";
+        if(t.delay === 0) {
+            // 0 ms gecikmede doğru yanıt "Equal"
+            if(ans === "Equal") correct = "Correct";
+        } else {
+            // Gecikme varsa, doğru yanıt Leading taraftır
+            if(t.lead === ans) correct = "Correct";
+        }
+        
+        // Görsel Efekt (Sadece mavi yanıp söner, doğru/yanlış göstermez)
         if(btn) {
             btn.style.background = '#007AFF'; btn.style.color = '#fff';
             setTimeout(()=>{ btn.style.background = '#f2f2f7'; btn.style.color = '#1c1c1e'; }, 200);
@@ -656,17 +700,16 @@ function finishExp() {
     // CSV OLUŞTUR
     const csvContent = generateCSV(DATA.results);
     
-    // TABLO GÖSTER
-    let html = '<table class="res-table"><thead><tr><th>Soru</th><th>Uyaran</th><th>Yanıt</th><th>D</th></tr></thead><tbody>';
+    // TABLO GÖSTER (Katılımcı doğruluk bilgisini görmez)
+    let html = '<table class="res-table"><thead><tr><th>Soru</th><th>Uyaran</th><th>Yanıt</th></tr></thead><tbody>';
     DATA.results.forEach(r => {
-        let cls = r.isCorrect === "Correct" ? "correct" : (r.isCorrect === "Wrong" ? "wrong" : "");
-        let d = r.isCorrect === "Correct" ? "✔" : (r.isCorrect === "Wrong" ? "✖" : r.isCorrect);
-        html += `<tr><td>${r.trial}</td><td>${r.stim}</td><td>${r.resp}</td><td class="${cls}">${d}</td></tr>`;
+        // Not: Katılımcı için 'D' (Doğruluk) sütununu kaldırdım.
+        html += `<tr><td>${r.trial}</td><td>${r.stim}</td><td>${r.resp}</td></tr>`;
     });
     html += '</tbody></table>';
     document.getElementById('resultTableContainer').innerHTML = html;
     
-    // E-POSTA İÇERİĞİ
+    // E-POSTA İÇERİĞİ (Araştırmacı tüm detayları görür)
     const emailBody = `
 KOD: ${DATA.code}
 AD SOYAD: ${DATA.name} ${DATA.surname}
@@ -702,7 +745,5 @@ function generateCSV(results) {
     return [headers, ...rows].join("\n");
 }
 </script>
-</body>
-</html>
 </body>
 </html>
